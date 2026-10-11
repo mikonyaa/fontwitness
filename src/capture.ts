@@ -29,7 +29,7 @@ export async function capturePage(config: Config, options: CaptureOptions = {}):
   options.signal?.addEventListener('abort', abort, { once: true });
   const timer = setTimeout(() => { deadline = true; stopOwnedProcess(); }, config.readiness.totalTimeoutMs);
   try {
-    if (options.signal?.aborted) throw new Error('INTERRUPTED');
+    if (options.signal?.aborted) { interrupted = true; throw new Error('INTERRUPTED'); }
     ownedServer = await chromium.launchServer({ headless: config.browser.headless, chromiumSandbox: true, handleSIGINT: false, host: '127.0.0.1', timeout: Math.min(30000, config.readiness.totalTimeoutMs) });
     if (deadline || interrupted) throw new Error('STOPPED');
     browser = await chromium.connect(ownedServer.wsEndpoint(), { timeout: Math.min(30000, config.readiness.totalTimeoutMs) });
@@ -85,6 +85,7 @@ export async function capturePage(config: Config, options: CaptureOptions = {}):
     const code = interrupted ? 'INTERRUPTED' : deadline ? 'RUN_TIMEOUT' : known.includes(message) ? message : !browser ? 'BROWSER_UNAVAILABLE' : !cdp || !domainsEnabled ? 'CDP_UNAVAILABLE' : 'CAPTURE_EXECUTION_ERROR';
     report.diagnostics.push({ code, message: code === 'BROWSER_UNAVAILABLE' ? 'Compatible Chromium could not launch. Run fontwitness install-browser; review OS sandbox and browser availability.' : `Capture could not complete (${code}). No complete contract is claimed.` });
   } finally {
+    clearTimeout(timer);
     // BrowserServer owns this exact process. Closing it also closes its contexts/CDP sessions.
     // Never await a detached target before terminating the browser that owns it.
     if (ownedServer) {
@@ -92,7 +93,7 @@ export async function capturePage(config: Config, options: CaptureOptions = {}):
       catch { fatal = true; report.diagnostics.push({ code: 'BROWSER_CLEANUP_FAILED', message: 'Owned browser cleanup could not complete within its deadline.' }); }
     }
     await bounded(browser?.close().catch(() => {}) ?? Promise.resolve(), 2000, 'CLIENT_CLOSE_TIMEOUT').catch(() => {});
-    clearTimeout(timer); options.signal?.removeEventListener('abort', abort);
+    options.signal?.removeEventListener('abort', abort);
   }
   const readinessIssues: Diagnostic[] = report.diagnostics.filter(d => ['FONT_READY_TIMEOUT', 'UNSTABLE_CAPTURE', 'SCREENSHOT_STATE_CHANGED'].includes(d.code));
   if (readinessIssues.length) for (const rule of report.capturedRules) for (const element of rule.elements) { element.coverage = 'partial'; element.reasons.push(...readinessIssues); }

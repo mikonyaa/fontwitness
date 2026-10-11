@@ -70,6 +70,9 @@ test('unstable rendering never passes', async () => {
   const run = await capturePage(config('unstable', { readiness: { maxAttempts: 2, stableWindowMs: 80 } })); assert.equal(run.summary.exitCode, 3); assert.ok(run.diagnostics.some(r => r.code === 'UNSTABLE_CAPTURE'));
 });
 test('trusted local hook, deadline, SIGINT cleanup and related reasons', async () => {
+  const stopped = new AbortController(); stopped.abort();
+  const skipped = await capturePage(config('correct'), { signal: stopped.signal });
+  assert.equal(skipped.summary.exitCode, 130); assert.equal(skipped.diagnostics[0].code, 'INTERRUPTED'); assert.equal(skipped.observations.length, 0);
   const hook = join(temporary, 'hook.mjs'); await writeFile(hook, 'export async function prepare({page}) { await page.locator("nav").evaluate(e => e.remove()); }');
   const good = await capturePage(config('correct', { preparation: { hook } })); assert.equal(good.summary.exitCode, 0);
   const slow = join(temporary, 'slow.mjs'); await writeFile(slow, 'export async function prepare(){await new Promise(r=>setTimeout(r,500));}');
