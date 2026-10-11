@@ -3,11 +3,17 @@ import { join } from 'node:path';
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
 import { PLAYWRIGHT_VERSION } from './model.js';
+import type { BrowserServer } from 'playwright';
+import { bounded } from './util.js';
 
 // A dedicated cache also prevents the installer pruning browsers owned by other tools.
 process.env.PLAYWRIGHT_BROWSERS_PATH ??= join(homedir(), '.cache', 'fontwitness', `playwright-${PLAYWRIGHT_VERSION}`);
 export const { chromium } = await import('playwright');
 export const installedPlaywrightVersion: string = createRequire(import.meta.url)('playwright/package.json').version;
+export async function closeOwnedServer(server: BrowserServer, graceMs = 2000): Promise<boolean> {
+  try { await bounded(server.close(), graceMs, 'BROWSER_CLOSE_TIMEOUT'); return false; }
+  catch { await bounded(server.kill(), 5000, 'BROWSER_KILL_TIMEOUT'); return true; }
+}
 export async function installBrowser(json = false): Promise<void> {
   const require = createRequire(import.meta.url);
   const cli = join(require.resolve('playwright/package.json'), '..', 'cli.js');

@@ -35,7 +35,7 @@
     "lint": "eslint src",
     "build": "tsc",
     "test:unit": "node --test tests/unit/*.test.mjs",
-    "test:integration": "node --test --test-concurrency=1 tests/integration/*.test.mjs",
+    "test:integration": "node --test --test-timeout=60000 --test-concurrency=1 tests/integration/*.test.mjs",
     "test:package": "node scripts/package-test.mjs",
     "prepack": "npm run build",
     "pretest:unit": "npm run build"

@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { parseConfig } from '../../dist/config.js';
 import { capturePage } from '../../dist/capture.js';
 import { compareRuns } from '../../dist/compare.js';
-import { chromium } from '../../dist/browser.js';
+import { chromium, closeOwnedServer } from '../../dist/browser.js';
 import { startDemoServer } from '../../examples/font-loading-site/server.mjs';
 
 let server, temporary;
@@ -77,6 +77,16 @@ test('trusted local hook, deadline, SIGINT cleanup and related reasons', async (
   const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), 120); const abort = await capturePage(config('deadline'), { signal: controller.signal }); clearTimeout(timer); assert.equal(abort.summary.exitCode, 130);
   const deadline = await capturePage(config('deadline', { readiness: { totalTimeoutMs: 150 } })); assert.equal(deadline.summary.exitCode, 2); assert.ok(deadline.diagnostics.some(d => d.code === 'RUN_TIMEOUT'));
 });
+test('owned browser is terminated when graceful shutdown cannot complete', async () => {
+  const owned = await chromium.launchServer({ headless: true, chromiumSandbox: true, host: '127.0.0.1', handleSIGINT: false });
+  const process = owned.process();
+  const close = owned.close;
+  owned.close = () => new Promise(() => {});
+  try {
+    assert.equal(await closeOwnedServer(owned, 20), true);
+    assert.ok(process.exitCode !== null || process.signalCode !== null, 'The exact owned Chromium process exited');
+  } finally { owned.close = close; await owned.kill(); }
+});
 test('viewport evidence does not scroll or activate synthetic lazy state', async () => {
   let bytes; const run = await capturePage(config('lazy', { artifacts: { screenshots: 'viewport', includeText: true } }), { screenshot: async value => { bytes = value; } });
   assert.equal(run.summary.exitCode, 0); assert.ok(bytes.length > 1000); assert.equal(run.artifactManifest[0].consistent, true); assert.ok(!JSON.stringify(run.observations).includes('Changed after scroll'));
@@ -86,23 +96,23 @@ test('viewport evidence does not scroll or activate synthetic lazy state', async
 });
 test('real browser engine unavailable produces fatal capture, never CSS-only success', async () => {
   // The native mechanism itself is exercised in every test above; mocking only this failure boundary.
-  const original = chromium.launch; chromium.launch = async () => { throw new Error('browser unavailable'); };
+  const original = chromium.launchServer; chromium.launchServer = async () => { throw new Error('browser unavailable'); };
   try { const run = await capturePage(config('correct')); assert.equal(run.summary.exitCode, 2); assert.equal(run.observations.length, 0); assert.equal(run.diagnostics[0].code, 'BROWSER_UNAVAILABLE'); }
-  finally { chromium.launch = original; }
+  finally { chromium.launchServer = original; }
 });
 test('screenshot-time mutation omits inconsistent evidence and keeps a partial result', async () => {
-  const launch = chromium.launch;
-  chromium.launch = async options => {
-    const browser = await launch.call(chromium, options); const newContext = browser.newContext.bind(browser);
+  const launch = chromium.connect;
+  chromium.connect = async (endpoint, options) => {
+    const browser = await launch.call(chromium, endpoint, options); const newContext = browser.newContext.bind(browser);
     browser.newContext = async options => { const context=await newContext(options);const newPage=context.newPage.bind(context);context.newPage=async()=>{const page=await newPage();const screenshot=page.screenshot.bind(page);page.screenshot=async options=>{const bytes=await screenshot(options);await page.evaluate(()=>document.querySelector('[data-font-check]').textContent='Mutation during image capture');return bytes;};return page;};return context;};
     return browser;
   };
   let attached = false;
   try { const run=await capturePage(config('correct',{artifacts:{screenshots:'viewport'}}),{screenshot:async()=>{attached=true;}});assert.equal(run.summary.exitCode,3);assert.ok(run.diagnostics.some(d=>d.code==='SCREENSHOT_STATE_CHANGED'));assert.equal(attached,false);assert.equal(run.artifactManifest.length,0); }
-  finally { chromium.launch=launch; }
+  finally { chromium.connect=launch; }
 });
 test('unavailable CDP domain is a fatal execution error with an explicit reason', async () => {
-  const launch=chromium.launch;chromium.launch=async options=>{const browser=await launch.call(chromium,options);const newContext=browser.newContext.bind(browser);browser.newContext=async options=>{const context=await newContext(options);context.newCDPSession=async()=>{throw new Error('CDP blocked');};return context;};return browser;};
+  const launch=chromium.connect;chromium.connect=async(endpoint,options)=>{const browser=await launch.call(chromium,endpoint,options);const newContext=browser.newContext.bind(browser);browser.newContext=async options=>{const context=await newContext(options);context.newCDPSession=async()=>{throw new Error('CDP blocked');};return context;};return browser;};
   try {const run=await capturePage(config('correct'));assert.equal(run.summary.exitCode,2);assert.equal(run.diagnostics[0].code,'CDP_UNAVAILABLE');}
-  finally {chromium.launch=launch;}
+  finally {chromium.connect=launch;}
 });

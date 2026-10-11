@@ -2,8 +2,8 @@ import { randomUUID } from 'node:crypto';
 import { platform, arch, release } from 'node:os';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import type { CDPSession, BrowserContext, Page } from 'playwright';
-import { chromium, installedPlaywrightVersion } from './browser.js';
+import type { CDPSession, BrowserContext, Page, BrowserServer } from 'playwright';
+import { chromium, installedPlaywrightVersion, closeOwnedServer } from './browser.js';
 import type { Config } from './config.js';
 import { CAPTURE_POLICY, CHROMIUM_VERSION, PLAYWRIGHT_VERSION, TOOL_VERSION, type RunReport, type Diagnostic } from './model.js';
 import { evaluateRule } from './contracts.js';
@@ -16,6 +16,7 @@ export async function capturePage(config: Config, options: CaptureOptions = {}):
   const mode = options.mode ?? 'audit';
   const report: RunReport = { schemaVersion: 1, kind: 'capture', mode, toolVersion: TOOL_VERSION, captureId: randomUUID(), recordedAt: new Date().toISOString(), target: { pageId: config.page.id, url: sanitizeUrl(config.page.url), finalUrl: sanitizeUrl(config.page.url) }, environment: { browser: '', playwright: PLAYWRIGHT_VERSION, node: process.version, os: platform(), osVersion: release(), arch: arch() }, settings: { browser: config.browser, limits: config.limits, capturePolicy: CAPTURE_POLICY }, readiness: { fontsReady: false, stable: false, attempts: 0, stableWindowMs: config.readiness.stableWindowMs, samples: [] }, coverage: { status: 'partial', matched: 0, measured: 0, unmeasured: 0, excluded: 0, unsupported: 0, excludedSurfaces: ['iframes', 'shadow DOM (including closed roots)', 'canvas', 'SVG', 'generated content', 'form control values', 'whitespace-only nodes', 'script/style/template content'] }, observations: [], capturedRules: [], diagnostics: [], networkEvidence: [], artifactManifest: [], summary: { exitCode: 2, partial: true } };
   let browser: Awaited<ReturnType<typeof chromium.launch>> | undefined;
+  let ownedServer: BrowserServer | undefined;
   let context: BrowserContext | undefined;
   let cdp: CDPSession | undefined;
   let domainsEnabled = false;
@@ -23,13 +24,16 @@ export async function capturePage(config: Config, options: CaptureOptions = {}):
   let fatal = false;
   let interrupted = false;
   let deadline = false;
-  const close = () => context?.close().catch(() => {});
-  const abort = () => { interrupted = true; void close(); };
+  const stopOwnedProcess = () => { void ownedServer?.kill().catch(() => {}); };
+  const abort = () => { interrupted = true; stopOwnedProcess(); };
   options.signal?.addEventListener('abort', abort, { once: true });
-  const timer = setTimeout(() => { deadline = true; void close(); }, config.readiness.totalTimeoutMs);
+  const timer = setTimeout(() => { deadline = true; stopOwnedProcess(); }, config.readiness.totalTimeoutMs);
   try {
     if (options.signal?.aborted) throw new Error('INTERRUPTED');
-    browser = await chromium.launch({ headless: config.browser.headless, chromiumSandbox: true, handleSIGINT: false, timeout: Math.min(30000, config.readiness.totalTimeoutMs) });
+    ownedServer = await chromium.launchServer({ headless: config.browser.headless, chromiumSandbox: true, handleSIGINT: false, host: '127.0.0.1', timeout: Math.min(30000, config.readiness.totalTimeoutMs) });
+    if (deadline || interrupted) throw new Error('STOPPED');
+    browser = await chromium.connect(ownedServer.wsEndpoint(), { timeout: Math.min(30000, config.readiness.totalTimeoutMs) });
+    if (deadline || interrupted) throw new Error('STOPPED');
     report.environment.browser = browser.version(); report.environment.playwright = installedPlaywrightVersion;
     if (browser.version() !== CHROMIUM_VERSION || installedPlaywrightVersion !== PLAYWRIGHT_VERSION) throw new Error('BROWSER_VERSION_MISMATCH');
     context = await browser.newContext({ viewport: config.browser.viewport, deviceScaleFactor: config.browser.deviceScaleFactor, locale: config.browser.locale, acceptDownloads: false });
@@ -73,6 +77,7 @@ export async function capturePage(config: Config, options: CaptureOptions = {}):
         else { await options.screenshot(bytes); report.artifactManifest.push({ path: 'viewport.png', mediaType: 'image/png', bytes: bytes.length, sha256: hash(bytes), consistent: true }); }
       }
     }
+    if (deadline || interrupted) throw new Error('STOPPED');
   } catch (error) {
     fatal = true;
     const message = error instanceof Error ? error.message : '';
@@ -80,8 +85,14 @@ export async function capturePage(config: Config, options: CaptureOptions = {}):
     const code = interrupted ? 'INTERRUPTED' : deadline ? 'RUN_TIMEOUT' : known.includes(message) ? message : !browser ? 'BROWSER_UNAVAILABLE' : !cdp || !domainsEnabled ? 'CDP_UNAVAILABLE' : 'CAPTURE_EXECUTION_ERROR';
     report.diagnostics.push({ code, message: code === 'BROWSER_UNAVAILABLE' ? 'Compatible Chromium could not launch. Run fontwitness install-browser; review OS sandbox and browser availability.' : `Capture could not complete (${code}). No complete contract is claimed.` });
   } finally {
+    // BrowserServer owns this exact process. Closing it also closes its contexts/CDP sessions.
+    // Never await a detached target before terminating the browser that owns it.
+    if (ownedServer) {
+      try { if (await closeOwnedServer(ownedServer)) report.diagnostics.push({ code: 'BROWSER_FORCE_CLOSED', message: 'Owned Chromium exceeded its graceful shutdown budget and was terminated.' }); }
+      catch { fatal = true; report.diagnostics.push({ code: 'BROWSER_CLEANUP_FAILED', message: 'Owned browser cleanup could not complete within its deadline.' }); }
+    }
+    await bounded(browser?.close().catch(() => {}) ?? Promise.resolve(), 2000, 'CLIENT_CLOSE_TIMEOUT').catch(() => {});
     clearTimeout(timer); options.signal?.removeEventListener('abort', abort);
-    await cdp?.detach().catch(() => {}); await context?.close().catch(() => {}); await browser?.close().catch(() => {});
   }
   const readinessIssues: Diagnostic[] = report.diagnostics.filter(d => ['FONT_READY_TIMEOUT', 'UNSTABLE_CAPTURE', 'SCREENSHOT_STATE_CHANGED'].includes(d.code));
   if (readinessIssues.length) for (const rule of report.capturedRules) for (const element of rule.elements) { element.coverage = 'partial'; element.reasons.push(...readinessIssues); }
@@ -91,7 +102,7 @@ export async function capturePage(config: Config, options: CaptureOptions = {}):
   report.coverage.unmeasured = report.observations.length - report.coverage.measured;
   report.coverage.excluded = allElements.reduce((n, e) => n + e.counts.excluded, 0);
   report.coverage.unsupported = allElements.reduce((n, e) => n + e.counts.unsupported, 0);
-  const partial = fatal || readinessIssues.length > 0 || report.capturedRules.some(r => r.reasons.length > 0 || r.elements.some(e => e.coverage === 'partial')) || report.observations.length === 0;
+  const partial = fatal || interrupted || deadline || readinessIssues.length > 0 || report.capturedRules.some(r => r.reasons.length > 0 || r.elements.some(e => e.coverage === 'partial')) || report.observations.length === 0;
   report.coverage.status = partial ? 'partial' : 'complete';
   if (mode === 'audit') {
     report.ruleResults = report.capturedRules.map(r => evaluateRule(r, report.observations));

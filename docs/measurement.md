@@ -6,6 +6,8 @@ The experiment in `scripts/feasibility.mjs` shows a 404 changing `Alegreya Sans`
 
 Each CDP result retains its raw counts. Font identities can be unioned while preserving observation origins; counts are never summed across roots. A glyph count is not a Unicode character count, an accuracy percentage, or proof that tofu is absent. Backend node IDs only identify provenance within that session. Font URLs are not inferred from `isCustomFont` or joined to platform identities.
 
+The browser is owned through public Playwright `launchServer`/`connect`, with a temporary loopback-only control endpoint that is never saved. Run deadlines and SIGINT terminate only this owned process. Graceful shutdown has a bounded budget with public `BrowserServer.kill()` as the fallback, so an unresponsive target cannot hold cleanup indefinitely. This is a local browser controller, not a hosted service.
+
 Before navigation FontWitness installs font-request metadata listeners. It waits for DOMContentLoaded, the explicit trusted hook, an optional ready selector, and bounded `document.fonts.ready`. It captures two sets of DOM/font/layout signatures separated by rendering frames and a bounded stable window, retrying within maxAttempts. A font deadline or unstable window marks selected elements partial. Font readiness can settle after a request failure; intended font delivery still needs actual identity evidence and a contract.
 
 Viewport screenshots never scroll the page. The collector rechecks the signature after the image; changes omit the inconsistent image and make the run partial. If a hook scrolls, it runs before readiness. Changes after the recorded window are outside the measurement. CSS, cache policy, animations, and font loading are not silently modified.

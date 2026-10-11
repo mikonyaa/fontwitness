@@ -9,7 +9,7 @@ interface RawData { nodes: RawNode[]; rules: Array<{ matched: number; elements: 
 export interface Snapshot { observations: Observation[]; rules: CapturedRule[]; signature: string; }
 
 // The function is serialized for Runtime.evaluate. No page globals or private Playwright fields.
-function collect(config: Config) {
+function collect(config: Pick<Config, 'rules' | 'limits'>) {
   const nodes: Text[] = [];
   const dataNodes: RawNode[] = [];
   const canonical = new Map<Text, string>();
@@ -85,7 +85,7 @@ function collect(config: Config) {
 export async function takeSnapshot(cdp: CDPSession, config: Config): Promise<Snapshot> {
   const group = 'fontwitness-capture';
   await cdp.send('DOM.getDocument', { depth: 0 });
-  const expression = `(${collect.toString()})(${JSON.stringify(config)})`;
+  const expression = `(${collect.toString()})(${JSON.stringify({ rules: config.rules, limits: config.limits })})`;
   try {
     const { result, exceptionDetails } = await cdp.send('Runtime.evaluate', { expression, objectGroup: group });
     if (exceptionDetails || !result.objectId) throw new Error('SELECTOR_OR_DOM_COLLECTION_FAILED');
