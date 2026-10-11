@@ -8,12 +8,14 @@ import { createHash } from 'node:crypto';
 
 const environment = { ...process.env, PATH: `${dirname(process.execPath)}:${process.env.PATH}`, NO_COLOR: '1', FORCE_COLOR: '0' };
 const run = (binary, args, cwd, expected = 0) => {
+  console.error(`Consumer check: ${args.slice(0, 3).join(' ')}`);
   const result = spawnSync(binary, args, { cwd, env: environment, encoding: 'utf8', timeout: 120000, shell: false, maxBuffer: 30 * 1024 * 1024 });
   assert.equal(result.status, expected, `${binary} ${args.join(' ')}\n${result.stderr}\n${result.stdout}`);
   return result;
 };
 // Audits must be asynchronous while this process owns the synthetic HTTP server.
 const runAsync = (binary, args, cwd, expected = 0) => new Promise((resolve, reject) => {
+  console.error(`Consumer check: ${args.slice(0, 4).join(' ')}`);
   execFile(binary, args, { cwd, env: environment, encoding: 'utf8', timeout: 120000, shell: false, maxBuffer: 30 * 1024 * 1024 }, (error, stdout, stderr) => {
     try { assert.equal(error ? error.code : 0, expected, `${binary} ${args.join(' ')}\n${stderr}\n${stdout}`); resolve({ stdout, stderr }); }
     catch (failure) { reject(failure); }
@@ -54,11 +56,18 @@ try {
   await writeFile(join(consumer, 'invalid.json'), '{}'); assert.equal(JSON.parse(run(binary, ['audit', '--config', 'invalid.json', '--out', './invalid', '--json'], consumer, 2).stdout).exitCode, 2);
   config.page.url = `${server.origin}/deadline`; await writeFile(join(consumer, 'interrupt.json'), JSON.stringify(config));
   const child = spawn(binary, ['audit', '--config', 'interrupt.json', '--out', './interrupt', '--json'], { cwd: consumer, env: environment, stdio: ['ignore','pipe','pipe'] });
+  console.error('Consumer check: SIGINT cleanup and JSON');
   let output = ''; child.stdout.on('data', data => output += data);
   let timer; child.stderr.once('data', () => { timer = setTimeout(() => child.kill('SIGINT'), 150); });
-  const code = await new Promise((resolve, reject) => { child.once('close', resolve); child.once('error', reject); }); clearTimeout(timer); assert.equal(code, 130); assert.equal(JSON.parse(output).summary.exitCode, 130);
+  let deadline;
+  const code = await new Promise((resolve, reject) => {
+    deadline=setTimeout(()=>{child.kill('SIGKILL');child.stdout.destroy();child.stderr.destroy();reject(new Error(`SIGINT cleanup exceeded 40 seconds; stdout bytes=${output.length}`));},40000);
+    child.once('exit',(code,signal)=>console.error(`SIGINT child exit: code=${code}, signal=${signal}, stdout bytes=${output.length}`));
+    child.once('close',resolve);child.once('error',reject);
+  }).finally(()=>{clearTimeout(timer);clearTimeout(deadline);});assert.equal(code,130);assert.equal(JSON.parse(output).summary.exitCode,130);
   // Offline UI is verified again using only the installed distribution's browser dependency.
   const browserModule = await import(pathToFileURL(join(consumer, 'node_modules/fontwitness/dist/browser.js')).href);
+  console.error('Consumer check: installed offline HTML');
   const browser = await browserModule.chromium.launch({ chromiumSandbox: true });
   try { const context = await browser.newContext(); await context.setOffline(true); const page = await context.newPage(); await page.goto(pathToFileURL(join(consumer, 'demo/broken/report.html')).href); assert.equal(await page.locator('.finding').count(), 2); await page.getByLabel('Status', { exact: true }).selectOption('unexpected'); assert.equal(await page.locator('.finding:visible').count(), 2); }
   finally { await browser.close(); }
