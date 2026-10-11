@@ -2,13 +2,13 @@
   "schemaVersion": 1,
   "kind": "capture",
   "mode": "audit",
-  "toolVersion": "0.1.0",
-  "captureId": "2a635ef1-977d-4c28-a3df-1bca3c8a4fc4",
-  "recordedAt": "2026-10-11T15:57:12.801Z",
+  "toolVersion": "0.1.1",
+  "captureId": "d094e40a-c03a-4384-a358-be36a93973c0",
+  "recordedAt": "2026-10-11T18:07:05.346Z",
   "target": {
     "pageId": "font-delivery",
-    "url": "http://127.0.0.1:56756/fixed",
-    "finalUrl": "http://127.0.0.1:56756/fixed"
+    "url": "http://127.0.0.1:59822/fixed",
+    "finalUrl": "http://127.0.0.1:59822/fixed"
   },
   "environment": {
     "browser": "156.0.8078.4",
@@ -33,7 +33,7 @@
       "maxMatchesPerRule": 200,
       "maxTextLength": 16384
     },
-    "capturePolicy": "light-dom-textnodes-v1"
+    "capturePolicy": "light-dom-textnodes-v2"
   },
   "readiness": {
     "fontsReady": true,
@@ -203,7 +203,7 @@
       "path": "report.html",
       "mediaType": "text/html",
       "bytes": 439878,
-      "sha256": "ca21647d149d38c3cd742acad0b5bd6fc9a7ff3d17f2e0d14682ab01edded376",
+      "sha256": "b68ee0ccbd26865e1586f040933b06bc6af1a7a3fcb53b0c5af981297bf9f8ca",
       "consistent": true
     }
   ],

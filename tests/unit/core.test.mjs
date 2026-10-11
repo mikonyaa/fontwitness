@@ -11,7 +11,7 @@ const font = { familyName: 'Primary', postScriptName: 'Primary-Regular', isCusto
 const config = () => parseConfig({ schemaVersion: 1, page: { id: 'test', url: 'http://127.0.0.1:3000' }, rules: [{ id: 'copy', selector: 'p', keyAttribute: 'data-key', allowed: [{ familyName: 'Primary' }], required: [{ familyName: 'Primary' }] }] });
 const observation = () => ({ id: 't1', path: '1.2', textFingerprint: 'a', textLength: 9, requestedCSS: { fontFamily: 'Alias', fontSize: '20px', fontWeight: '400', fontStyle: 'normal' }, fonts: [font], reasons: [], measurementStatus: 'measured', provenance: { method: 'CSS.getPlatformFontsForNode', nodeType: 3 } });
 const element = () => ({ id: 'e1', key: 'one', path: '1', nodeIds: ['t1'], textFingerprint: 'text', structureFingerprint: 'structure', signature: 'signature', measurementStatus: 'measured', coverage: 'complete', reasons: [], counts: { textNodes: 1, measured: 1, excluded: 0, unsupported: 0 } });
-const run = () => ({ schemaVersion: 1, kind: 'capture', mode: 'audit', toolVersion: '0.1.0', recordedAt: '', captureId: 'x', target: { pageId: 'page' }, environment: { browser: '156', playwright: '1.64.0', node: '24', os: 'linux', osVersion: '6', arch: 'x64' }, settings: { browser: config().browser, capturePolicy: 'light-dom-textnodes-v1', limits: config().limits }, coverage: { status: 'complete' }, observations: [observation()], capturedRules: [{ rule: config().rules[0], matched: 1, elements: [element()], reasons: [] }], summary: { exitCode: 0, partial: false } });
+const run = () => ({ schemaVersion: 1, kind: 'capture', mode: 'audit', toolVersion: '0.1.1', recordedAt: '', captureId: 'x', target: { pageId: 'page' }, environment: { browser: '156', playwright: '1.64.0', node: '24', os: 'linux', osVersion: '6', arch: 'x64' }, settings: { browser: config().browser, capturePolicy: 'light-dom-textnodes-v2', limits: config().limits }, coverage: { status: 'complete' }, observations: [observation()], capturedRules: [{ rule: config().rules[0], matched: 1, elements: [element()], reasons: [] }], summary: { exitCode: 0, partial: false } });
 
 test('strict config validates URL, unknown keys, exhaustive allowed set, and unique rule IDs', () => {
   assert.equal(config().browser.locale, 'en-US');
@@ -70,6 +70,15 @@ test('compare strict environment mismatch and cross-env semantics', () => {
   const a = run(), b = run(); b.environment.os = 'darwin'; b.observations[0].fonts = [{ ...font, familyName: 'Other' }];
   assert.equal(compareRuns(a, b).summary.exitCode, 3); assert.equal(compareRuns(a, b, true).summary.exitCode, 0);
   b.coverage.status = 'partial'; assert.equal(compareRuns(a, b, true).summary.exitCode, 3);
+});
+test('compare refuses incompatible capture policies in both modes', () => {
+  const before = run(), after = run(); before.settings.capturePolicy = 'light-dom-textnodes-v1';
+  for (const crossEnv of [false, true]) {
+    const result = compareRuns(before, after, crossEnv);
+    assert.equal(result.summary.exitCode, 3); assert.equal(result.summary.partial, true);
+    assert.equal(result.contractVerdict, null);
+    assert.ok(result.diagnostics.some(reason => reason.code === 'CAPTURE_POLICY_MISMATCH'));
+  }
 });
 test('compare duplicate keys, missing keys, text and structure changes stay ambiguous', () => {
   for (const mutate of [b => b.capturedRules[0].elements.push(element()), b => b.capturedRules[0].elements[0].key = null, b => b.capturedRules[0].elements[0].textFingerprint = 'different', b => b.capturedRules[0].elements[0].structureFingerprint = 'different']) {

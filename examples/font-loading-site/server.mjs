@@ -29,6 +29,11 @@ export async function startDemoServer(options = {}) {
     if (mode === 'hidden') content = '<p data-font-check="hidden" style="display:none">Hidden text</p>';
     if (mode === 'empty') content = '<p data-font-check="empty"></p>';
     if (mode === 'unsupported') content = '<div data-font-check="unsupported">Visible text <canvas>Canvas alternative</canvas><input value="Outside light DOM"><svg><text>Outside policy</text></svg><x-test></x-test></div>';
+    if (mode === 'svg-mixed') content = '<div data-font-check="svg-mixed">Supported HTML text <svg width="200" height="40"><text y="20">Excluded SVG text</text></svg></div>';
+    if (mode === 'svg-prefixed') {
+      content = '<div data-font-check="svg-prefixed">Supported HTML text</div>';
+      extra = '<script>const svg=document.createElementNS("http://www.w3.org/2000/svg","s:svg");svg.setAttribute("width","200");svg.setAttribute("height","40");const text=document.createElementNS(svg.namespaceURI,"s:text");text.setAttribute("y","20");text.textContent="Excluded prefixed SVG text";svg.append(text);document.querySelector("[data-font-check]").append(svg)</script>';
+    }
     if (mode === 'aliases') content = '<p data-font-check="a">First alias</p><p data-font-check="b" style="font-family:SecondAlias,monospace">Second alias</p>';
     if (mode === 'bytes') extra = `<script>const f=new FontFace('WitnessAlias',new Uint8Array([${[...primary].join(',')}]).buffer);f.load().then(font=>document.fonts.add(font));</script>`;
     if (mode === 'unstable') extra = '<script>setInterval(()=>{document.querySelector("[data-font-check]").textContent=String(Date.now())},30)</script>';

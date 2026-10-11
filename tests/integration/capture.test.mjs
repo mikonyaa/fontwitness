@@ -61,6 +61,16 @@ test('missing, hidden, empty, limits, unsupported surfaces, and invalid selector
 test('inspect has observations and no invented contract verdict', async () => {
   const run = await capturePage(config('broken'), { mode: 'inspect' }); assert.equal(run.summary.exitCode, 0); assert.ok(!('contractVerdict' in run.summary)); assert.ok(!('ruleResults' in run));
 });
+test('mixed HTML/SVG, including prefixed SVG, cannot claim complete measurement', async () => {
+  for (const mode of ['svg-mixed', 'svg-prefixed']) {
+    const run = await capturePage(config(mode));
+    assert.equal(run.summary.exitCode, 3); assert.equal(run.summary.partial, true);
+    assert.equal(run.summary.contractVerdict, 'unmeasured'); assert.equal(run.coverage.status, 'partial');
+    assert.deepEqual(familySet(run), ['Alegreya Sans']); assert.equal(run.coverage.measured, 1);
+    assert.ok(run.coverage.unsupported > 0); assert.ok(run.coverage.excluded > 0);
+    assert.ok(run.ruleResults[0].elements[0].reasons.some(reason => reason.code === 'UNSUPPORTED_SURFACE'));
+  }
+});
 test('three real runs produce equal normalized observations', async () => {
   const runs = []; for (let i = 0; i < 3; i++) runs.push(await capturePage(config('nested')));
   const normalize = run => run.observations.map(({ provenance, ...o }) => ({ ...o, provenance: { method: provenance.method, nodeType: provenance.nodeType } }));

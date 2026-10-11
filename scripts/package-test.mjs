@@ -31,7 +31,7 @@ const consumer = await mkdtemp(join(tmpdir(), 'fontwitness-consumer-'));
 await writeFile(join(consumer, 'package.json'), '{"name":"fontwitness-release-consumer","version":"1.0.0","private":true,"type":"module"}\n');
 run('npm', ['install', '--no-audit', '--no-fund', '--ignore-scripts', pack], consumer);
 const binary = join(consumer, 'node_modules/.bin/fontwitness');
-assert.equal(run(binary, ['--version'], consumer).stdout.trim(), '0.1.0');
+assert.equal(run(binary, ['--version'], consumer).stdout.trim(), '0.1.1');
 assert.ok(run(binary, ['--help'], consumer).stdout.includes('inspect'));
 assert.equal(JSON.parse(run(binary, ['install-browser', '--json'], consumer).stdout).installed, true);
 assert.equal(JSON.parse(run(binary, ['doctor', '--json'], consumer).stdout).ok, true);
@@ -43,7 +43,7 @@ const { startDemoServer } = await import(pathToFileURL(join(consumer, 'example/s
 const server = await startDemoServer();
 try {
   const config = JSON.parse(await readFile(join(consumer, 'example/fontwitness.config.json'), 'utf8'));
-  for (const [mode, expected] of [['correct', 0], ['broken', 1], ['fixed', 0], ['mixed', 3]]) {
+  for (const [mode, expected] of [['correct', 0], ['broken', 1], ['fixed', 0], ['mixed', 3], ['svg-mixed', 3], ['svg-prefixed', 3]]) {
     config.page.url = `${server.origin}/${mode}`;
     const file = join(consumer, `${mode}.json`); await writeFile(file, JSON.stringify(config));
     const result = await runAsync(binary, ['audit', '--config', file, '--out', `./audit-${mode}`, '--json', '--no-open'], consumer, expected);

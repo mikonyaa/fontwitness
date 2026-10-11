@@ -2,13 +2,13 @@
   "schemaVersion": 1,
   "kind": "capture",
   "mode": "audit",
-  "toolVersion": "0.1.0",
-  "captureId": "5c6aa082-53bc-40ef-95d9-204b44a90aae",
-  "recordedAt": "2026-10-11T15:57:11.791Z",
+  "toolVersion": "0.1.1",
+  "captureId": "6b7ce036-1a34-4455-8612-6bfd968cc96e",
+  "recordedAt": "2026-10-11T18:07:04.183Z",
   "target": {
     "pageId": "font-delivery",
-    "url": "http://127.0.0.1:56756/correct",
-    "finalUrl": "http://127.0.0.1:56756/correct"
+    "url": "http://127.0.0.1:59822/correct",
+    "finalUrl": "http://127.0.0.1:59822/correct"
   },
   "environment": {
     "browser": "156.0.8078.4",
@@ -33,7 +33,7 @@
       "maxMatchesPerRule": 200,
       "maxTextLength": 16384
     },
-    "capturePolicy": "light-dom-textnodes-v1"
+    "capturePolicy": "light-dom-textnodes-v2"
   },
   "readiness": {
     "fontsReady": true,
@@ -89,7 +89,7 @@
       "provenance": {
         "method": "CSS.getPlatformFontsForNode",
         "nodeType": 3,
-        "backendNodeId": 16
+        "backendNodeId": 15
       }
     },
     {
@@ -117,7 +117,7 @@
       "provenance": {
         "method": "CSS.getPlatformFontsForNode",
         "nodeType": 3,
-        "backendNodeId": 17
+        "backendNodeId": 16
       }
     }
   ],
@@ -203,7 +203,7 @@
       "path": "report.html",
       "mediaType": "text/html",
       "bytes": 439884,
-      "sha256": "46c2052b5c1dff8eb9c01477bc17dad7739e319547be2e24505843c827c09605",
+      "sha256": "5d35a0fdb95753506d5164bbf4f8c60a6a6fa04e436838fdf056bdee7e5969b0",
       "consistent": true
     }
   ],

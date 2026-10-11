@@ -12,10 +12,10 @@
 <body>
   <header><span class="wordmark">FontWitness /</span><a href="https://github.com/mikonyaa/fontwitness">Source & documentation</a></header>
   <main>
-    <div class="eyebrow">Local CLI · offline reports · v0.1.0</div>
+    <div class="eyebrow">Local CLI · offline reports · v0.1.1</div>
     <h1>Engine evidence for your typography contract.</h1>
     <p>See the fonts Chromium actually renders and enforce typography contracts in CI. A declared font-family can look correct while a broken font URL quietly changes the rendered font.</p>
-    <pre>npm install --save-dev https://github.com/mikonyaa/fontwitness/releases/download/v0.1.0/fontwitness-0.1.0.tgz
+    <pre>npm install --save-dev https://github.com/mikonyaa/fontwitness/releases/download/v0.1.1/fontwitness-0.1.1.tgz
 ./node_modules/.bin/fontwitness install-browser
 ./node_modules/.bin/fontwitness demo --out ./fontwitness-demo --no-open</pre>
     <p class="caption">Node 24 LTS · Playwright 1.64.0 · Chromium 156.0.8078.4. Browser download is explicit.</p>
@@ -32,7 +32,7 @@
         <article class="report"><span class="tag unexpected">FONT CHANGE · COMPARABLE · EXIT 1</span><h3>Broken → fixed comparison</h3><p>Stable keys match the elements in both saved runs. The observed change is not labeled a proven product regression.</p><a href="reports/comparison/report.html">Open comparison</a> · <a href="reports/comparison/capture.json">JSON evidence</a></article>
       </div>
     </section>
-    <section><h2>Measured boundaries stay visible</h2><p>FontWitness measures ordinary light-DOM TextNodes on one explicitly selected page. All matches are checked, overlap is canonical, and incomplete measurements remain partial. CSS declarations are diagnostic; actual engine identities drive contract evaluation.</p><p>Glyph counts are raw per-call observations, not character counts or correctness scores. The pinned Chromium is supported. Iframes, shadow text, canvas, SVG, generated content, and control values are outside v0.1.0.</p><a href="https://github.com/mikonyaa/fontwitness#exit-codes">Commands, exit codes, and limits</a> · <a href="https://github.com/mikonyaa/fontwitness/releases/tag/v0.1.0">Verified release package</a></section>
+    <section><h2>Measured boundaries stay visible</h2><p>FontWitness measures ordinary light-DOM TextNodes on one explicitly selected page. All matches are checked, overlap is canonical, and incomplete measurements remain partial. CSS declarations are diagnostic; actual engine identities drive contract evaluation.</p><p>Glyph counts are raw per-call observations, not character counts or correctness scores. The pinned Chromium is supported. Iframes, shadow text, canvas, SVG, generated content, and control values are outside v0.1.1.</p><a href="https://github.com/mikonyaa/fontwitness#exit-codes">Commands, exit codes, and limits</a> · <a href="https://github.com/mikonyaa/fontwitness/releases/tag/v0.1.1">Verified release package</a></section>
     <footer>Own synthetic content and real browser captures. No customer data, telemetry, or hosted crawler.<br>Code: MIT. Bundled demo fonts: SIL OFL 1.1 — <a href="assets/alegreyasans-OFL.txt">Alegreya Sans license</a>, <a href="assets/notosansjp-OFL.txt">Noto CJK license</a>, <a href="assets/manifest.json">font sources and hashes</a>.</footer>
   </main>
 </body>

@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "kind": "comparison",
-  "toolVersion": "0.1.0",
-  "recordedAt": "2026-10-11T15:57:13.822Z",
+  "toolVersion": "0.1.1",
+  "recordedAt": "2026-10-11T18:07:06.344Z",
   "mode": "strict",
   "contractVerdict": null,
-  "before": "e355baf1-af1c-456c-8ae1-085286634122",
-  "after": "2a635ef1-977d-4c28-a3df-1bca3c8a4fc4",
+  "before": "439640f7-1bb5-4f6b-996e-5b613f9c1d59",
+  "after": "d094e40a-c03a-4384-a358-be36a93973c0",
   "environmentDifferences": [],
   "diagnostics": [],
   "changes": [

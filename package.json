@@ -1,6 +1,6 @@
 {
   "name": "fontwitness",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "See the fonts Chromium actually renders and enforce typography contracts in CI.",
   "type": "module",
   "license": "MIT",

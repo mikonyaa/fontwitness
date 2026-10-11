@@ -1,9 +1,9 @@
 import type { Config, Rule, FontMatcher } from './config.js';
 
-export const TOOL_VERSION = '0.1.0';
+export const TOOL_VERSION = '0.1.1';
 export const PLAYWRIGHT_VERSION = '1.64.0';
 export const CHROMIUM_VERSION = '156.0.8078.4';
-export const CAPTURE_POLICY = 'light-dom-textnodes-v1';
+export const CAPTURE_POLICY = 'light-dom-textnodes-v2';
 export type Coverage = 'complete' | 'partial';
 export type MeasurementStatus = 'measured' | 'unmeasured';
 export type ContractStatus = 'expected' | 'unexpected' | 'unmeasured';

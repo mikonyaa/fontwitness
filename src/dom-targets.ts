@@ -49,7 +49,7 @@ function collect(config: Pick<Config, 'rules' | 'limits'>) {
       const surfaces = new Set<string>();
       const examineElement = (e: Element) => {
         if (e.shadowRoot) { unsupported++; surfaces.add('SHADOW_DOM_EXCLUDED'); }
-        if (['IFRAME', 'CANVAS', 'SVG', 'INPUT', 'TEXTAREA', 'SELECT'].includes(e.tagName)) { unsupported++; surfaces.add('UNSUPPORTED_SURFACE'); }
+        if (e.namespaceURI === 'http://www.w3.org/2000/svg' || ['IFRAME', 'CANVAS', 'INPUT', 'TEXTAREA', 'SELECT'].includes(e.tagName.toUpperCase())) { unsupported++; surfaces.add('UNSUPPORTED_SURFACE'); }
         for (const pseudo of ['::before', '::after']) { const s = getComputedStyle(e, pseudo); if (s.display !== 'none' && !['none', 'normal', '""', "''", ''].includes(s.content)) { unsupported++; surfaces.add('GENERATED_CONTENT_EXCLUDED'); } }
       };
       const examineText = (n: Text) => {

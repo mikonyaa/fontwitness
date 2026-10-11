@@ -2,7 +2,7 @@
 
 See the fonts Chromium actually renders and enforce typography contracts in CI.
 
-[![CI](https://github.com/mikonyaa/fontwitness/actions/workflows/ci.yml/badge.svg)](https://github.com/mikonyaa/fontwitness/actions/workflows/ci.yml) · [Release](https://github.com/mikonyaa/fontwitness/releases/tag/v0.1.0) · [Synthetic reports](https://mikonyaa.github.io/fontwitness/) · [MIT](LICENSE)
+[![CI](https://github.com/mikonyaa/fontwitness/actions/workflows/ci.yml/badge.svg)](https://github.com/mikonyaa/fontwitness/actions/workflows/ci.yml) · [Release](https://github.com/mikonyaa/fontwitness/releases/tag/v0.1.1) · [Synthetic reports](https://mikonyaa.github.io/fontwitness/) · [MIT](LICENSE)
 
 A webfont can return 404 while `getComputedStyle(element).fontFamily` still looks correct. FontWitness asks Chromium's rendering engine for the fonts used by each selected light-DOM TextNode, evaluates explicit allowed/required contracts for **every** selector match, and saves evidence you can review offline or compare later.
 
@@ -17,7 +17,7 @@ Prerequisites: **Node 24 LTS**, npm, and macOS Apple Silicon or Linux x64 with C
 In your project, using Node 24:
 
 ```sh
-npm install --save-dev https://github.com/mikonyaa/fontwitness/releases/download/v0.1.0/fontwitness-0.1.0.tgz
+npm install --save-dev https://github.com/mikonyaa/fontwitness/releases/download/v0.1.1/fontwitness-0.1.1.tgz
 ./node_modules/.bin/fontwitness install-browser
 ./node_modules/.bin/fontwitness doctor
 ./node_modules/.bin/fontwitness demo --out ./fontwitness-demo --no-open
@@ -30,9 +30,9 @@ On Linux, install the required OS libraries first using the distribution's norma
 The release publishes SHA256SUMS and a manifest identifying its source commit and exact CI-produced tarball. To verify before installing:
 
 ```sh
-curl -fL -O https://github.com/mikonyaa/fontwitness/releases/download/v0.1.0/fontwitness-0.1.0.tgz
-curl -fL -O https://github.com/mikonyaa/fontwitness/releases/download/v0.1.0/SHA256SUMS
-shasum -a 256 fontwitness-0.1.0.tgz
+curl -fL -O https://github.com/mikonyaa/fontwitness/releases/download/v0.1.1/fontwitness-0.1.1.tgz
+curl -fL -O https://github.com/mikonyaa/fontwitness/releases/download/v0.1.1/SHA256SUMS
+shasum -a 256 fontwitness-0.1.1.tgz
 ```
 
 Compare that digest with the tarball entry in SHA256SUMS. Avoid registry commands for an unpublished package; they could fetch unrelated software.
@@ -146,7 +146,7 @@ Local validation: macOS 26.7.1, Apple Silicon arm64, Node 24.21.0, npm 11.19.0. 
 
 Tests exercise real font delivery/404, permitted/forbidden language fallback, aliases, FontFace bytes, swap/deadlines, four-level nesting, sibling nodes/overlap, the last match, partial evidence, missing/hidden/empty targets, limits, browser/CDP failure, reproducibility, comparison, lazy-loading/screenshot consistency, hostile HTML/JSON, offline interaction at 1440/1024/390 px, focus/keyboard/contrast, installed package scenarios, and interrupt cleanup. Fixtures have independent expected verdicts; saved JSON is not substituted for real capture.
 
-Full iframe/shadow DOM, canvas, SVG, generated content, and control-value measurement are outside v0.1.0. Known unsupported surfaces in a selection are reported partial; a supported light-DOM conclusion does not attest to excluded closed shadow content. The tool does not provide a per-character font map, detect all missing glyphs/tofu, prove licensing compliance, find all visual differences, or ensure identical rendering across OSes. Changes after the measured window are outside the evidence.
+Full iframe/shadow DOM, canvas, SVG, generated content, and control-value measurement are outside v0.1.1. Known unsupported surfaces in a selection are reported partial; a supported light-DOM conclusion does not attest to excluded closed shadow content. The tool does not provide a per-character font map, detect all missing glyphs/tofu, prove licensing compliance, find all visual differences, or ensure identical rendering across OSes. Changes after the measured window are outside the evidence.
 
 One URL per run. Readiness and resource limits are bounded. Trusted hooks are ordinary code and can escape time/resource expectations through synchronous work or retained handles; they are not an isolation boundary. Use a disposable environment for untrusted target pages. [Security](SECURITY.md) explains this trust model.
 
