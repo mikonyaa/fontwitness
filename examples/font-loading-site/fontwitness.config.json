@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "page": { "id": "font-delivery", "url": "http://127.0.0.1:3000/correct", "readySelector": "[data-app-ready]" },
+  "browser": { "headless": true, "viewport": { "width": 1280, "height": 800 }, "deviceScaleFactor": 1, "locale": "en-US" },
+  "readiness": { "navigationTimeoutMs": 30000, "fontTimeoutMs": 10000, "stableWindowMs": 200, "maxAttempts": 3 },
+  "limits": { "maxTextNodes": 2000, "maxMatchesPerRule": 200 },
+  "artifacts": { "screenshots": "none", "includeText": false },
+  "rules": [{ "id": "copy", "selector": "[data-font-check]", "match": "all", "scope": "subtree", "minMatches": 1, "keyAttribute": "data-font-check", "allowed": [{ "familyName": "Alegreya Sans", "isCustomFont": true }], "required": [{ "familyName": "Alegreya Sans", "isCustomFont": true }] }]
+}

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "kind": "comparison",
+  "toolVersion": "0.1.0",
+  "recordedAt": "2026-10-11T15:57:13.822Z",
+  "mode": "strict",
+  "contractVerdict": null,
+  "before": "e355baf1-af1c-456c-8ae1-085286634122",
+  "after": "2a635ef1-977d-4c28-a3df-1bca3c8a4fc4",
+  "environmentDifferences": [],
+  "diagnostics": [],
+  "changes": [
+    {
+      "ruleId": "copy",
+      "key": "heading",
+      "before": [
+        "[\"Courier\",\"Courier\",false]"
+      ],
+      "after": [
+        "[\"Alegreya Sans\",\"AlegreyaSans-Regular\",true]"
+      ],
+      "changed": true
+    },
+    {
+      "ruleId": "copy",
+      "key": "body",
+      "before": [
+        "[\"Courier\",\"Courier\",false]"
+      ],
+      "after": [
+        "[\"Alegreya Sans\",\"AlegreyaSans-Regular\",true]"
+      ],
+      "changed": true
+    }
+  ],
+  "summary": {
+    "exitCode": 1,
+    "partial": false,
+    "changed": 2
+  }
+}

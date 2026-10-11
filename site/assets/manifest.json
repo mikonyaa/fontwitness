@@ -1,0 +1,18 @@
+[
+  {
+    "file": "AlegreyaSans-Regular.ttf",
+    "source": "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/alegreyasans/AlegreyaSans-Regular.ttf",
+    "sourceCommit": "bd8f81ddb5c74d5c8897b36ad88b440266245103",
+    "sha256": "8fab634196007afca839f1e5a6fb300976daff55d8528b590ef032f01b14ea10",
+    "license": "SIL OFL 1.1",
+    "modified": false
+  },
+  {
+    "file": "NotoSansCJKjp-Regular.otf",
+    "source": "https://raw.githubusercontent.com/notofonts/noto-cjk/f8d157532fbfaeda587e826d4cd5b21a49186f7c/Sans/OTF/Japanese/NotoSansCJKjp-Regular.otf",
+    "sourceCommit": "f8d157532fbfaeda587e826d4cd5b21a49186f7c",
+    "sha256": "68a3fc98800b2a27b371f2fb79991daf3633bd89309d4ffaa6946fd587f375b5",
+    "license": "SIL OFL 1.1",
+    "modified": false
+  }
+]

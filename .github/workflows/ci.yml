@@ -1,0 +1,57 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    name: Verify (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-15]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/fontwitness-browser
+      PLAYWRIGHT_SKIP_BROWSER_GC: '1'
+      NO_COLOR: '1'
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run test:unit
+      - run: npm run build
+      - name: Install system libraries with the pinned Playwright installer
+        if: runner.os == 'Linux'
+        run: node node_modules/playwright/cli.js install-deps chromium
+      - run: node dist/cli.js install-browser
+      - run: node dist/cli.js doctor --json
+      - run: npm run test:integration
+      - name: Pack and test an independent installed consumer
+        run: npm run test:package
+      - name: Preserve the exact consumer-tested tarball
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: package-${{ matrix.os }}
+          path: |
+            artifacts/package/*.tgz
+            artifacts/package/consumer-evidence.json
+          if-no-files-found: error
+          retention-days: 14
+      - name: Preserve synthetic UI evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ui-${{ matrix.os }}
+          path: artifacts/ui/*.png
+          if-no-files-found: error
+          retention-days: 7

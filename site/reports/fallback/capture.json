@@ -1,0 +1,235 @@
+{
+  "schemaVersion": 1,
+  "kind": "capture",
+  "mode": "audit",
+  "toolVersion": "0.1.0",
+  "captureId": "c2e5b478-a869-47ef-8d4c-80f15a8bd1b4",
+  "recordedAt": "2026-10-11T15:57:13.263Z",
+  "target": {
+    "pageId": "font-delivery",
+    "url": "http://127.0.0.1:56756/fallback",
+    "finalUrl": "http://127.0.0.1:56756/fallback"
+  },
+  "environment": {
+    "browser": "156.0.8078.4",
+    "playwright": "1.64.0",
+    "node": "v24.21.0",
+    "os": "darwin",
+    "osVersion": "25.6.0",
+    "arch": "arm64"
+  },
+  "settings": {
+    "browser": {
+      "headless": true,
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "deviceScaleFactor": 1,
+      "locale": "en-US"
+    },
+    "limits": {
+      "maxTextNodes": 2000,
+      "maxMatchesPerRule": 200,
+      "maxTextLength": 16384
+    },
+    "capturePolicy": "light-dom-textnodes-v1"
+  },
+  "readiness": {
+    "fontsReady": true,
+    "stable": true,
+    "attempts": 1,
+    "stableWindowMs": 200,
+    "samples": [
+      "3b9ae8bc87ea49b599819a599bf39653ffbed5d2a79f7e3b34a1106a61c4ce5d",
+      "3b9ae8bc87ea49b599819a599bf39653ffbed5d2a79f7e3b34a1106a61c4ce5d"
+    ]
+  },
+  "coverage": {
+    "status": "complete",
+    "matched": 1,
+    "measured": 1,
+    "unmeasured": 0,
+    "excluded": 0,
+    "unsupported": 0,
+    "excludedSurfaces": [
+      "iframes",
+      "shadow DOM (including closed roots)",
+      "canvas",
+      "SVG",
+      "generated content",
+      "form control values",
+      "whitespace-only nodes",
+      "script/style/template content"
+    ]
+  },
+  "observations": [
+    {
+      "id": "t1",
+      "path": "1.1.1.0.0",
+      "textFingerprint": "63d60caafd46501bd13b39cf15375fb05b2f04fe9a803217cf4ac54b3aa6b427",
+      "textLength": 9,
+      "text": "Hello 日本語",
+      "requestedCSS": {
+        "fontFamily": "WitnessAlias, JapaneseAlias, monospace",
+        "fontSize": "64px",
+        "fontWeight": "400",
+        "fontStyle": "normal"
+      },
+      "fonts": [
+        {
+          "familyName": "Alegreya Sans",
+          "postScriptName": "AlegreyaSans-Regular",
+          "isCustomFont": true,
+          "glyphCount": 6
+        },
+        {
+          "familyName": "Noto Sans CJK JP",
+          "postScriptName": "NotoSansCJKjp-Regular",
+          "isCustomFont": true,
+          "glyphCount": 3
+        }
+      ],
+      "measurementStatus": "measured",
+      "reasons": [],
+      "provenance": {
+        "method": "CSS.getPlatformFontsForNode",
+        "nodeType": 3,
+        "backendNodeId": 12
+      }
+    }
+  ],
+  "capturedRules": [
+    {
+      "rule": {
+        "id": "copy",
+        "selector": "[data-font-check]",
+        "match": "all",
+        "scope": "subtree",
+        "minMatches": 1,
+        "keyAttribute": "data-font-check",
+        "allowed": [
+          {
+            "familyName": "Alegreya Sans",
+            "isCustomFont": true
+          },
+          {
+            "familyName": "Noto Sans CJK JP",
+            "isCustomFont": true
+          }
+        ],
+        "required": [
+          {
+            "familyName": "Alegreya Sans"
+          },
+          {
+            "familyName": "Noto Sans CJK JP"
+          }
+        ]
+      },
+      "matched": 1,
+      "reasons": [],
+      "elements": [
+        {
+          "id": "e1",
+          "key": "heading",
+          "path": "1.1.1.0",
+          "nodeIds": [
+            "t1"
+          ],
+          "textFingerprint": "52b85997f2ec301cfb1d9b2c0dc944a6bbc29d2812968ea753fdb885ea687334",
+          "structureFingerprint": "89a1587dc902edd8f0aab77ad5a3de52d907f9a1549799bb47df5581b31c9af7",
+          "signature": "50ef5f7c512de99a9c8a08f64c4a8e7de9171906d46d1e662e22ce709c535013",
+          "reasons": [],
+          "measurementStatus": "measured",
+          "coverage": "complete",
+          "counts": {
+            "textNodes": 1,
+            "measured": 1,
+            "excluded": 0,
+            "unsupported": 0
+          }
+        }
+      ]
+    }
+  ],
+  "diagnostics": [],
+  "networkEvidence": [],
+  "artifactManifest": [
+    {
+      "path": "viewport.png",
+      "mediaType": "image/png",
+      "bytes": 29497,
+      "sha256": "705157915c0852430d8d24d776c6c64a10f513d62579c104168e3551cb7360c0",
+      "consistent": true
+    },
+    {
+      "path": "report.html",
+      "mediaType": "text/html",
+      "bytes": 411639,
+      "sha256": "fd1320218b112b58c929b562a960966de2c1f2433f2673884ae5c51e20e0e288",
+      "consistent": true
+    }
+  ],
+  "summary": {
+    "exitCode": 0,
+    "partial": false,
+    "contractVerdict": "expected"
+  },
+  "ruleResults": [
+    {
+      "id": "copy",
+      "selector": "[data-font-check]",
+      "matched": 1,
+      "elements": [
+        {
+          "elementId": "e1",
+          "key": "heading",
+          "measurementStatus": "measured",
+          "coverage": "complete",
+          "contractStatus": "expected",
+          "reasons": [],
+          "actualFonts": [
+            {
+              "familyName": "Alegreya Sans",
+              "postScriptName": "AlegreyaSans-Regular",
+              "isCustomFont": true,
+              "observationIds": [
+                "t1"
+              ]
+            },
+            {
+              "familyName": "Noto Sans CJK JP",
+              "postScriptName": "NotoSansCJKjp-Regular",
+              "isCustomFont": true,
+              "observationIds": [
+                "t1"
+              ]
+            }
+          ],
+          "allowed": [
+            {
+              "familyName": "Alegreya Sans",
+              "isCustomFont": true
+            },
+            {
+              "familyName": "Noto Sans CJK JP",
+              "isCustomFont": true
+            }
+          ],
+          "required": [
+            {
+              "familyName": "Alegreya Sans"
+            },
+            {
+              "familyName": "Noto Sans CJK JP"
+            }
+          ]
+        }
+      ],
+      "reasons": [],
+      "coverage": "complete",
+      "contractStatus": "expected"
+    }
+  ]
+}

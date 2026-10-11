@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>FontWitness · Chromium engine evidence</title>
+  <meta name="description" content="See the fonts Chromium actually renders and enforce typography contracts in CI.">
+  <style>
+    :root{--paper:#f4f5f1;--surface:#fff;--ink:#202a2d;--muted:#526166;--line:#ccd3cf;--accent:#185c50;--fail:#953524}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:18px/1.6 system-ui,sans-serif}header{background:var(--ink);color:var(--surface);padding:24px 6vw;display:flex;justify-content:space-between;gap:20px}header a{color:var(--surface)}.wordmark{font:700 20px monospace;letter-spacing:-1px}main{max-width:1160px;margin:auto;padding:64px 24px}h1{font-size:clamp(36px,5vw,64px);line-height:1.1;letter-spacing:-2px;font-weight:500;margin:10px 0 26px;max-width:900px}h2{font-size:25px;font-weight:500}p{max-width:850px}.eyebrow{font:12px monospace;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}a{color:var(--accent);text-underline-offset:4px}a:focus-visible,video:focus-visible{outline:3px solid #075cba;outline-offset:4px}code,pre{font:13px/1.7 monospace;overflow-wrap:anywhere}pre{white-space:pre-wrap;border:1px solid var(--line);background:var(--surface);padding:22px;margin:30px 0;overflow:auto}video{display:block;width:100%;background:var(--ink);border:1px solid var(--line);margin:30px 0}section{margin:44px 0}.reports{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.report{border:1px solid var(--line);background:var(--surface);padding:22px}.report h3{margin:0 0 8px;font-size:21px}.report p{font-size:16px;margin:8px 0 16px}.tag{font:12px monospace;color:var(--accent)}.unexpected{color:var(--fail)}.caption{font:13px/1.6 monospace;color:var(--muted)}footer{font-size:14px;border-top:1px solid var(--line);padding-top:26px;margin-top:60px;color:var(--muted)}@media(max-width:600px){main{padding:40px 18px}header{padding:20px}header>a{font-size:14px}h1{letter-spacing:-1px}.reports{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header><span class="wordmark">FontWitness /</span><a href="https://github.com/mikonyaa/fontwitness">Source & documentation</a></header>
+  <main>
+    <div class="eyebrow">Local CLI · offline reports · v0.1.0</div>
+    <h1>Engine evidence for your typography contract.</h1>
+    <p>See the fonts Chromium actually renders and enforce typography contracts in CI. A declared font-family can look correct while a broken font URL quietly changes the rendered font.</p>
+    <pre>npm install --save-dev https://github.com/mikonyaa/fontwitness/releases/download/v0.1.0/fontwitness-0.1.0.tgz
+./node_modules/.bin/fontwitness install-browser
+./node_modules/.bin/fontwitness demo --out ./fontwitness-demo --no-open</pre>
+    <p class="caption">Node 24 LTS · Playwright 1.64.0 · Chromium 156.0.8078.4. Browser download is explicit.</p>
+    <video controls preload="metadata" poster="assets/report-desktop.png" aria-label="Real font delivery repair demonstration"><source src="assets/demo.mp4" type="video/mp4">Download the <a href="assets/demo.mp4">real CLI demo</a>.</video>
+    <p class="caption">Real synthetic page and actual CLI output. The primary font endpoint is restored; the allowed-font contract stays unchanged.</p>
+    <section aria-labelledby="reports-title">
+      <h2 id="reports-title">Actual captures you can inspect</h2>
+      <p>This is a static viewer of our own synthetic results. It does not accept or analyze URLs.</p>
+      <div class="reports">
+        <article class="report"><span class="tag">EXPECTED · COMPLETE · EXIT 0</span><h3>Correct delivery</h3><p>Engine identity: Alegreya Sans. The primary font contract is met.</p><a href="reports/correct/report.html">Open report</a> · <a href="reports/correct/capture.json">JSON evidence</a></article>
+        <article class="report"><span class="tag unexpected">UNEXPECTED · COMPLETE · EXIT 1</span><h3>Broken primary URL</h3><p>The same CSS request renders the platform fallback. A real HTTP 404 accompanies the actual mismatch.</p><a href="reports/broken/report.html">Open report</a> · <a href="reports/broken/capture.json">JSON evidence</a></article>
+        <article class="report"><span class="tag">EXPECTED · COMPLETE · EXIT 0</span><h3>Fixed delivery</h3><p>The primary font is delivered again. The original contract stays intact.</p><a href="reports/fixed/report.html">Open report</a> · <a href="reports/fixed/capture.json">JSON evidence</a></article>
+        <article class="report"><span class="tag">EXPECTED · COMPLETE · EXIT 0</span><h3>Allowed Latin/CJK fallback</h3><p>Alegreya Sans and Noto Sans CJK JP are both explicitly allowed and required. Multiple fonts are valid here.</p><a href="reports/fallback/report.html">Open report</a> · <a href="reports/fallback/capture.json">JSON evidence</a></article>
+        <article class="report"><span class="tag unexpected">FONT CHANGE · COMPARABLE · EXIT 1</span><h3>Broken → fixed comparison</h3><p>Stable keys match the elements in both saved runs. The observed change is not labeled a proven product regression.</p><a href="reports/comparison/report.html">Open comparison</a> · <a href="reports/comparison/capture.json">JSON evidence</a></article>
+      </div>
+    </section>
+    <section><h2>Measured boundaries stay visible</h2><p>FontWitness measures ordinary light-DOM TextNodes on one explicitly selected page. All matches are checked, overlap is canonical, and incomplete measurements remain partial. CSS declarations are diagnostic; actual engine identities drive contract evaluation.</p><p>Glyph counts are raw per-call observations, not character counts or correctness scores. The pinned Chromium is supported. Iframes, shadow text, canvas, SVG, generated content, and control values are outside v0.1.0.</p><a href="https://github.com/mikonyaa/fontwitness#exit-codes">Commands, exit codes, and limits</a> · <a href="https://github.com/mikonyaa/fontwitness/releases/tag/v0.1.0">Verified release package</a></section>
+    <footer>Own synthetic content and real browser captures. No customer data, telemetry, or hosted crawler.<br>Code: MIT. Bundled demo fonts: SIL OFL 1.1 — <a href="assets/alegreyasans-OFL.txt">Alegreya Sans license</a>, <a href="assets/notosansjp-OFL.txt">Noto CJK license</a>, <a href="assets/manifest.json">font sources and hashes</a>.</footer>
+  </main>
+</body>
+</html>

@@ -1,0 +1,8 @@
+*.ttf binary
+*.otf binary
+*.png binary
+*.mp4 binary
+# Keep verbatim upstream licenses and generated reports byte-for-byte.
+fixtures/fonts/*-OFL.txt -whitespace
+site/assets/*-OFL.txt -whitespace
+site/reports/*/report.html -whitespace

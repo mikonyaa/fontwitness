@@ -1,0 +1,287 @@
+{
+  "schemaVersion": 1,
+  "kind": "capture",
+  "mode": "audit",
+  "toolVersion": "0.1.0",
+  "captureId": "2a635ef1-977d-4c28-a3df-1bca3c8a4fc4",
+  "recordedAt": "2026-10-11T15:57:12.801Z",
+  "target": {
+    "pageId": "font-delivery",
+    "url": "http://127.0.0.1:56756/fixed",
+    "finalUrl": "http://127.0.0.1:56756/fixed"
+  },
+  "environment": {
+    "browser": "156.0.8078.4",
+    "playwright": "1.64.0",
+    "node": "v24.21.0",
+    "os": "darwin",
+    "osVersion": "25.6.0",
+    "arch": "arm64"
+  },
+  "settings": {
+    "browser": {
+      "headless": true,
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "deviceScaleFactor": 1,
+      "locale": "en-US"
+    },
+    "limits": {
+      "maxTextNodes": 2000,
+      "maxMatchesPerRule": 200,
+      "maxTextLength": 16384
+    },
+    "capturePolicy": "light-dom-textnodes-v1"
+  },
+  "readiness": {
+    "fontsReady": true,
+    "stable": true,
+    "attempts": 1,
+    "stableWindowMs": 200,
+    "samples": [
+      "e7ed44d0282048338ed64b603833b5a11c9b2dc015fb704be03c771e62850e14",
+      "e7ed44d0282048338ed64b603833b5a11c9b2dc015fb704be03c771e62850e14"
+    ]
+  },
+  "coverage": {
+    "status": "complete",
+    "matched": 2,
+    "measured": 2,
+    "unmeasured": 0,
+    "excluded": 0,
+    "unsupported": 0,
+    "excludedSurfaces": [
+      "iframes",
+      "shadow DOM (including closed roots)",
+      "canvas",
+      "SVG",
+      "generated content",
+      "form control values",
+      "whitespace-only nodes",
+      "script/style/template content"
+    ]
+  },
+  "observations": [
+    {
+      "id": "t1",
+      "path": "1.1.1.0.0",
+      "textFingerprint": "3327f80d9510a5a69dad35db5ae896e6fc19235284e6794db0bbcaf52ebc2786",
+      "textLength": 33,
+      "text": "Font delivery is part of your UI.",
+      "requestedCSS": {
+        "fontFamily": "WitnessAlias, monospace",
+        "fontSize": "64px",
+        "fontWeight": "400",
+        "fontStyle": "normal"
+      },
+      "fonts": [
+        {
+          "familyName": "Alegreya Sans",
+          "postScriptName": "AlegreyaSans-Regular",
+          "isCustomFont": true,
+          "glyphCount": 33
+        }
+      ],
+      "measurementStatus": "measured",
+      "reasons": [],
+      "provenance": {
+        "method": "CSS.getPlatformFontsForNode",
+        "nodeType": 3,
+        "backendNodeId": 15
+      }
+    },
+    {
+      "id": "t2",
+      "path": "1.1.1.1.0",
+      "textFingerprint": "29b735d23aa42ca4dc81207eee552d4ecffe6f8503cc3e7ce402cf041f73e7d1",
+      "textLength": 61,
+      "text": "The CSS request stays the same. The rendered font can change.",
+      "requestedCSS": {
+        "fontFamily": "WitnessAlias, monospace",
+        "fontSize": "27px",
+        "fontWeight": "400",
+        "fontStyle": "normal"
+      },
+      "fonts": [
+        {
+          "familyName": "Alegreya Sans",
+          "postScriptName": "AlegreyaSans-Regular",
+          "isCustomFont": true,
+          "glyphCount": 61
+        }
+      ],
+      "measurementStatus": "measured",
+      "reasons": [],
+      "provenance": {
+        "method": "CSS.getPlatformFontsForNode",
+        "nodeType": 3,
+        "backendNodeId": 16
+      }
+    }
+  ],
+  "capturedRules": [
+    {
+      "rule": {
+        "id": "copy",
+        "selector": "[data-font-check]",
+        "match": "all",
+        "scope": "subtree",
+        "minMatches": 1,
+        "keyAttribute": "data-font-check",
+        "allowed": [
+          {
+            "familyName": "Alegreya Sans",
+            "isCustomFont": true
+          }
+        ],
+        "required": [
+          {
+            "familyName": "Alegreya Sans",
+            "isCustomFont": true
+          }
+        ]
+      },
+      "matched": 2,
+      "reasons": [],
+      "elements": [
+        {
+          "id": "e1",
+          "key": "heading",
+          "path": "1.1.1.0",
+          "nodeIds": [
+            "t1"
+          ],
+          "textFingerprint": "1ce760eb89a5c96c5aae3295e3ecbac5659d523e2289366a2c6b547704cd2919",
+          "structureFingerprint": "89a1587dc902edd8f0aab77ad5a3de52d907f9a1549799bb47df5581b31c9af7",
+          "signature": "6ea3cdd6781fd3ba9a51e222feb62f95f8c6be45457168c6a6ca6dc582b9b404",
+          "reasons": [],
+          "measurementStatus": "measured",
+          "coverage": "complete",
+          "counts": {
+            "textNodes": 1,
+            "measured": 1,
+            "excluded": 0,
+            "unsupported": 0
+          }
+        },
+        {
+          "id": "e2",
+          "key": "body",
+          "path": "1.1.1.1",
+          "nodeIds": [
+            "t2"
+          ],
+          "textFingerprint": "8611b06e8d4ce0b60e1585434aae80fbc5bb9ecfe70aaa823016dc5b8ea56a2a",
+          "structureFingerprint": "89a1587dc902edd8f0aab77ad5a3de52d907f9a1549799bb47df5581b31c9af7",
+          "signature": "227981a65fd48442a4a871d3ac22cdd9c3e20513330473d0edc2b754d3d848a1",
+          "reasons": [],
+          "measurementStatus": "measured",
+          "coverage": "complete",
+          "counts": {
+            "textNodes": 1,
+            "measured": 1,
+            "excluded": 0,
+            "unsupported": 0
+          }
+        }
+      ]
+    }
+  ],
+  "diagnostics": [],
+  "networkEvidence": [],
+  "artifactManifest": [
+    {
+      "path": "viewport.png",
+      "mediaType": "image/png",
+      "bytes": 48290,
+      "sha256": "86b6ed3b768218b68401706474f560ec9a48cfbc939fd118b50084ece9778168",
+      "consistent": true
+    },
+    {
+      "path": "report.html",
+      "mediaType": "text/html",
+      "bytes": 439878,
+      "sha256": "ca21647d149d38c3cd742acad0b5bd6fc9a7ff3d17f2e0d14682ab01edded376",
+      "consistent": true
+    }
+  ],
+  "summary": {
+    "exitCode": 0,
+    "partial": false,
+    "contractVerdict": "expected"
+  },
+  "ruleResults": [
+    {
+      "id": "copy",
+      "selector": "[data-font-check]",
+      "matched": 2,
+      "elements": [
+        {
+          "elementId": "e1",
+          "key": "heading",
+          "measurementStatus": "measured",
+          "coverage": "complete",
+          "contractStatus": "expected",
+          "reasons": [],
+          "actualFonts": [
+            {
+              "familyName": "Alegreya Sans",
+              "postScriptName": "AlegreyaSans-Regular",
+              "isCustomFont": true,
+              "observationIds": [
+                "t1"
+              ]
+            }
+          ],
+          "allowed": [
+            {
+              "familyName": "Alegreya Sans",
+              "isCustomFont": true
+            }
+          ],
+          "required": [
+            {
+              "familyName": "Alegreya Sans",
+              "isCustomFont": true
+            }
+          ]
+        },
+        {
+          "elementId": "e2",
+          "key": "body",
+          "measurementStatus": "measured",
+          "coverage": "complete",
+          "contractStatus": "expected",
+          "reasons": [],
+          "actualFonts": [
+            {
+              "familyName": "Alegreya Sans",
+              "postScriptName": "AlegreyaSans-Regular",
+              "isCustomFont": true,
+              "observationIds": [
+                "t2"
+              ]
+            }
+          ],
+          "allowed": [
+            {
+              "familyName": "Alegreya Sans",
+              "isCustomFont": true
+            }
+          ],
+          "required": [
+            {
+              "familyName": "Alegreya Sans",
+              "isCustomFont": true
+            }
+          ]
+        }
+      ],
+      "reasons": [],
+      "coverage": "complete",
+      "contractStatus": "expected"
+    }
+  ]
+}

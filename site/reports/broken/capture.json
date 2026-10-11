@@ -1,0 +1,315 @@
+{
+  "schemaVersion": 1,
+  "kind": "capture",
+  "mode": "audit",
+  "toolVersion": "0.1.0",
+  "captureId": "e355baf1-af1c-456c-8ae1-085286634122",
+  "recordedAt": "2026-10-11T15:57:12.257Z",
+  "target": {
+    "pageId": "font-delivery",
+    "url": "http://127.0.0.1:56756/broken",
+    "finalUrl": "http://127.0.0.1:56756/broken"
+  },
+  "environment": {
+    "browser": "156.0.8078.4",
+    "playwright": "1.64.0",
+    "node": "v24.21.0",
+    "os": "darwin",
+    "osVersion": "25.6.0",
+    "arch": "arm64"
+  },
+  "settings": {
+    "browser": {
+      "headless": true,
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "deviceScaleFactor": 1,
+      "locale": "en-US"
+    },
+    "limits": {
+      "maxTextNodes": 2000,
+      "maxMatchesPerRule": 200,
+      "maxTextLength": 16384
+    },
+    "capturePolicy": "light-dom-textnodes-v1"
+  },
+  "readiness": {
+    "fontsReady": true,
+    "stable": true,
+    "attempts": 1,
+    "stableWindowMs": 200,
+    "samples": [
+      "68bf9694fdcea5203329c800ac66ca48518a2dac8e8d2457c1a22ec1a4c7d244",
+      "68bf9694fdcea5203329c800ac66ca48518a2dac8e8d2457c1a22ec1a4c7d244"
+    ]
+  },
+  "coverage": {
+    "status": "complete",
+    "matched": 2,
+    "measured": 2,
+    "unmeasured": 0,
+    "excluded": 0,
+    "unsupported": 0,
+    "excludedSurfaces": [
+      "iframes",
+      "shadow DOM (including closed roots)",
+      "canvas",
+      "SVG",
+      "generated content",
+      "form control values",
+      "whitespace-only nodes",
+      "script/style/template content"
+    ]
+  },
+  "observations": [
+    {
+      "id": "t1",
+      "path": "1.1.1.0.0",
+      "textFingerprint": "3327f80d9510a5a69dad35db5ae896e6fc19235284e6794db0bbcaf52ebc2786",
+      "textLength": 33,
+      "text": "Font delivery is part of your UI.",
+      "requestedCSS": {
+        "fontFamily": "WitnessAlias, monospace",
+        "fontSize": "64px",
+        "fontWeight": "400",
+        "fontStyle": "normal"
+      },
+      "fonts": [
+        {
+          "familyName": "Courier",
+          "postScriptName": "Courier",
+          "isCustomFont": false,
+          "glyphCount": 32
+        }
+      ],
+      "measurementStatus": "measured",
+      "reasons": [],
+      "provenance": {
+        "method": "CSS.getPlatformFontsForNode",
+        "nodeType": 3,
+        "backendNodeId": 12
+      }
+    },
+    {
+      "id": "t2",
+      "path": "1.1.1.1.0",
+      "textFingerprint": "29b735d23aa42ca4dc81207eee552d4ecffe6f8503cc3e7ce402cf041f73e7d1",
+      "textLength": 61,
+      "text": "The CSS request stays the same. The rendered font can change.",
+      "requestedCSS": {
+        "fontFamily": "WitnessAlias, monospace",
+        "fontSize": "27px",
+        "fontWeight": "400",
+        "fontStyle": "normal"
+      },
+      "fonts": [
+        {
+          "familyName": "Courier",
+          "postScriptName": "Courier",
+          "isCustomFont": false,
+          "glyphCount": 60
+        }
+      ],
+      "measurementStatus": "measured",
+      "reasons": [],
+      "provenance": {
+        "method": "CSS.getPlatformFontsForNode",
+        "nodeType": 3,
+        "backendNodeId": 13
+      }
+    }
+  ],
+  "capturedRules": [
+    {
+      "rule": {
+        "id": "copy",
+        "selector": "[data-font-check]",
+        "match": "all",
+        "scope": "subtree",
+        "minMatches": 1,
+        "keyAttribute": "data-font-check",
+        "allowed": [
+          {
+            "familyName": "Alegreya Sans",
+            "isCustomFont": true
+          }
+        ],
+        "required": [
+          {
+            "familyName": "Alegreya Sans",
+            "isCustomFont": true
+          }
+        ]
+      },
+      "matched": 2,
+      "reasons": [],
+      "elements": [
+        {
+          "id": "e1",
+          "key": "heading",
+          "path": "1.1.1.0",
+          "nodeIds": [
+            "t1"
+          ],
+          "textFingerprint": "1ce760eb89a5c96c5aae3295e3ecbac5659d523e2289366a2c6b547704cd2919",
+          "structureFingerprint": "89a1587dc902edd8f0aab77ad5a3de52d907f9a1549799bb47df5581b31c9af7",
+          "signature": "ac95d11ab85a0c912422ae233c77e8b885e8ec7a2a6ec5a804d775e2a52d859a",
+          "reasons": [],
+          "measurementStatus": "measured",
+          "coverage": "complete",
+          "counts": {
+            "textNodes": 1,
+            "measured": 1,
+            "excluded": 0,
+            "unsupported": 0
+          }
+        },
+        {
+          "id": "e2",
+          "key": "body",
+          "path": "1.1.1.1",
+          "nodeIds": [
+            "t2"
+          ],
+          "textFingerprint": "8611b06e8d4ce0b60e1585434aae80fbc5bb9ecfe70aaa823016dc5b8ea56a2a",
+          "structureFingerprint": "89a1587dc902edd8f0aab77ad5a3de52d907f9a1549799bb47df5581b31c9af7",
+          "signature": "dc4504e399b20457d1b21a0e09c3b3ba506bdde7a150267deda2286c152def5b",
+          "reasons": [],
+          "measurementStatus": "measured",
+          "coverage": "complete",
+          "counts": {
+            "textNodes": 1,
+            "measured": 1,
+            "excluded": 0,
+            "unsupported": 0
+          }
+        }
+      ]
+    }
+  ],
+  "diagnostics": [],
+  "networkEvidence": [
+    {
+      "url": "http://127.0.0.1:56756/missing.ttf",
+      "status": 404,
+      "code": "FONT_HTTP_ERROR"
+    },
+    {
+      "url": "http://127.0.0.1:56756/missing.ttf",
+      "code": "FONT_REQUEST_FAILED"
+    }
+  ],
+  "artifactManifest": [
+    {
+      "path": "viewport.png",
+      "mediaType": "image/png",
+      "bytes": 54753,
+      "sha256": "cc4f90ec4b5a193f17f200777bb9fe038af00ffc58c3c5534c936ea570f47143",
+      "consistent": true
+    },
+    {
+      "path": "report.html",
+      "mediaType": "text/html",
+      "bytes": 449845,
+      "sha256": "1af23e1abb06992fa24e690226faec0e7e60f610c4e0a7f89394a2cac76658c9",
+      "consistent": true
+    }
+  ],
+  "summary": {
+    "exitCode": 1,
+    "partial": false,
+    "contractVerdict": "unexpected"
+  },
+  "ruleResults": [
+    {
+      "id": "copy",
+      "selector": "[data-font-check]",
+      "matched": 2,
+      "elements": [
+        {
+          "elementId": "e1",
+          "key": "heading",
+          "measurementStatus": "measured",
+          "coverage": "complete",
+          "contractStatus": "unexpected",
+          "reasons": [
+            {
+              "code": "FONT_NOT_ALLOWED",
+              "message": "Observed Courier (Courier) is outside the allowed set."
+            },
+            {
+              "code": "REQUIRED_FONT_MISSING",
+              "message": "Required matcher {\"familyName\":\"Alegreya Sans\",\"isCustomFont\":true} was not observed."
+            }
+          ],
+          "actualFonts": [
+            {
+              "familyName": "Courier",
+              "postScriptName": "Courier",
+              "isCustomFont": false,
+              "observationIds": [
+                "t1"
+              ]
+            }
+          ],
+          "allowed": [
+            {
+              "familyName": "Alegreya Sans",
+              "isCustomFont": true
+            }
+          ],
+          "required": [
+            {
+              "familyName": "Alegreya Sans",
+              "isCustomFont": true
+            }
+          ]
+        },
+        {
+          "elementId": "e2",
+          "key": "body",
+          "measurementStatus": "measured",
+          "coverage": "complete",
+          "contractStatus": "unexpected",
+          "reasons": [
+            {
+              "code": "FONT_NOT_ALLOWED",
+              "message": "Observed Courier (Courier) is outside the allowed set."
+            },
+            {
+              "code": "REQUIRED_FONT_MISSING",
+              "message": "Required matcher {\"familyName\":\"Alegreya Sans\",\"isCustomFont\":true} was not observed."
+            }
+          ],
+          "actualFonts": [
+            {
+              "familyName": "Courier",
+              "postScriptName": "Courier",
+              "isCustomFont": false,
+              "observationIds": [
+                "t2"
+              ]
+            }
+          ],
+          "allowed": [
+            {
+              "familyName": "Alegreya Sans",
+              "isCustomFont": true
+            }
+          ],
+          "required": [
+            {
+              "familyName": "Alegreya Sans",
+              "isCustomFont": true
+            }
+          ]
+        }
+      ],
+      "reasons": [],
+      "coverage": "complete",
+      "contractStatus": "unexpected"
+    }
+  ]
+}
