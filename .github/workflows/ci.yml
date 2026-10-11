@@ -15,7 +15,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     env:
-      PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/fontwitness-browser
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/../fontwitness-browser
       PLAYWRIGHT_SKIP_BROWSER_GC: '1'
       NO_COLOR: '1'
     steps:
