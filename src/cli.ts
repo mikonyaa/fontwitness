@@ -18,7 +18,12 @@ const program = new Command().name('fontwitness').version(TOOL_VERSION).descript
 const controller = new AbortController();
 const interrupt = () => controller.abort(); process.once('SIGINT', interrupt);
 let jsonRequested = process.argv.includes('--json');
-function emit(value: unknown, text: string, code = 0): void { process.stdout.write(jsonRequested ? JSON.stringify(value) + '\n' : text + '\n'); process.exitCode = code; }
+function emit(value: unknown, text: string, code = 0): void {
+  if (controller.signal.aborted && code !== 130) {
+    code = 130; text = 'Operation interrupted.'; value = { error: { code: 'INTERRUPTED', message: text }, exitCode: code };
+  }
+  process.stdout.write(jsonRequested ? JSON.stringify(value) + '\n' : text + '\n'); process.exitCode = code;
+}
 function reportOptions(command: Command): Command { return command.requiredOption('--out <directory>', 'New output directory (must not already exist)').option('--json', 'Print exactly one JSON document').option('--no-open', 'Explicitly keep the report unopened (default)'); }
 async function capture(mode: 'inspect' | 'audit', config: ReturnType<typeof parseConfig>, dir: string, configDir?: string) {
   const out = await newOutputDirectory(dir); let image: Buffer | undefined;

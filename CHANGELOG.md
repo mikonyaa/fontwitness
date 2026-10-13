@@ -7,6 +7,7 @@
 - Distinguish doctor browser absence, version mismatch, sandbox/permission denial, launch failure, CDP failure, cleanup failure, and interruption with safe reason codes and matching actions. Keep the sandbox and pinned measurement pair.
 - Extend real Chromium, installed-package, malformed-capture, and offline report verification, including unchanged-contract font delivery/recovery and escaped selector/key/reason strings.
 - Index canonical observations for comparison and rule evaluation after profiling repeated scans on the size-limited stress fixture. Preserve measured identities, origin ordering, and raw counts.
+- Preserve SIGINT/130 when comparison is interrupted during report writing; do not emit a successful JSON result after an observed interrupt.
 
 ## 0.1.1
 
