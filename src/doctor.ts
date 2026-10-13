@@ -59,10 +59,10 @@ export async function runDoctor(signal?: AbortSignal): Promise<DoctorReport> {
     if (signal?.aborted) throw new Error('INTERRUPTED');
     server = await chromium.launchServer({ headless: true, chromiumSandbox: true, handleSIGINT: false, host: '127.0.0.1', timeout: 30000 });
     if (signal?.aborted) throw new Error('INTERRUPTED');
+    stage = 'measurement';
     browser = await chromium.connect(server.wsEndpoint(), { timeout: 30000 });
     if (!doctorVersionsMatch(process.version, installedPlaywrightVersion, browser.version())) report = result('VERSION_MISMATCH', browser);
     else {
-      stage = 'measurement';
       const context = await browser.newContext(); const page = await context.newPage();
       await page.setContent('<p>FontWitness doctor text</p>');
       const cdp = await context.newCDPSession(page); await cdp.send('DOM.enable'); await cdp.send('CSS.enable'); await cdp.send('DOM.getDocument', { depth: 0 });

@@ -50,6 +50,14 @@ test('launched mismatched Chromium returns version reason and closes its owned s
   const state = mockBrowser(t, { version: '155.0.0.0' });
   const report = await runDoctor(); assert.equal(report.code, 'VERSION_MISMATCH'); assert.equal(report.chromium, '155.0.0.0'); assert.equal(state().closed, 1);
 });
+test('a launched browser with failed CDP transport is a measurement failure and gets cleaned up', async t => {
+  const state = mockBrowser(t); t.mock.method(chromium, 'connect', async () => { throw new Error('CDP connection token=secret'); });
+  const report = await runDoctor(); assert.equal(report.code, 'CDP_MEASUREMENT_FAILED'); assert.equal(state().closed, 1);
+  assert.doesNotMatch(JSON.stringify(report), /token=secret/);
+});
+test('a missing headless executable is still a browser-installation reason', () => {
+  assert.equal(classifyDoctorFailure(new Error("Executable doesn't exist at /private/browser"), 'launch'), 'BROWSER_MISSING');
+});
 for (const [name, options] of [['CDP failure', { cdpError: new Error('CDP token=secret') }], ['empty font observation', { empty: true }]]) test(`doctor distinguishes ${name} from missing browser`, async t => {
   const state = mockBrowser(t, options); const report = await runDoctor();
   assert.equal(report.code, 'CDP_MEASUREMENT_FAILED'); assert.equal(report.exitCode, 2); assert.equal(state().closed, 1);
