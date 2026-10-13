@@ -1,7 +1,7 @@
-import type { RunReport, CompareReport } from './model.js';
+import type { CompareReport } from './model.js';
 import { TOOL_VERSION } from './model.js';
 import { CAPTURE_POLICY, CHROMIUM_VERSION, PLAYWRIGHT_VERSION } from './model.js';
-import { fontIdentity } from './util.js';
+import { fontIdentity, indexObservations } from './util.js';
 import { parseCapture } from './capture-input.js';
 
 export function compareRuns(beforeInput: unknown, afterInput: unknown, crossEnv = false): CompareReport {
@@ -18,6 +18,8 @@ export function compareRuns(beforeInput: unknown, afterInput: unknown, crossEnv 
   if (before.coverage.status === 'partial' || after.coverage.status === 'partial' || before.summary.exitCode === 2 || after.summary.exitCode === 2) issue('PARTIAL_CAPTURE', 'At least one capture is incomplete.');
   const beforeRules = new Map(before.capturedRules.map(r => [r.rule.id, r]));
   const afterRules = new Map(after.capturedRules.map(r => [r.rule.id, r]));
+  const beforeNodes = indexObservations(before.observations), afterNodes = indexObservations(after.observations);
+  const identities = (selected: ReturnType<typeof indexObservations>, ids: string[]) => [...new Set(selected(ids).flatMap(o => o.fonts.map(fontIdentity)))].sort();
   for (const id of new Set([...beforeRules.keys(), ...afterRules.keys()])) {
     const a = beforeRules.get(id), b = afterRules.get(id);
     if (!a || !b) { issue('RULE_SET_CHANGED', `Rule ${id} is missing in one capture.`); continue; }
@@ -34,8 +36,7 @@ export function compareRuns(beforeInput: unknown, afterInput: unknown, crossEnv 
       if (!ae || !be) { issue('ELEMENT_SET_CHANGED', `Rule ${id}, key ${key} is missing in one capture.`); continue; }
       if (ae.textFingerprint !== be.textFingerprint) issue('TEXT_INPUT_CHANGED', `Rule ${id}, key ${key} has different text.`);
       if (ae.structureFingerprint !== be.structureFingerprint) issue('STRUCTURE_CHANGED', `Rule ${id}, key ${key} has different light-DOM text structure.`);
-      const identities = (run: RunReport, ids: string[]) => [...new Set(run.observations.filter(o => ids.includes(o.id)).flatMap(o => o.fonts.map(fontIdentity)))].sort();
-      const fontsA = identities(before, ae.nodeIds), fontsB = identities(after, be.nodeIds);
+      const fontsA = identities(beforeNodes, ae.nodeIds), fontsB = identities(afterNodes, be.nodeIds);
       report.changes.push({ ruleId: id, key, before: fontsA, after: fontsB, changed: JSON.stringify(fontsA) !== JSON.stringify(fontsB) });
     }
   }

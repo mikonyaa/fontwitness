@@ -6,7 +6,7 @@ import { compareRuns } from '../../dist/compare.js';
 import { escapeHtml, safeJson } from '../../dist/report/render.js';
 import { sanitizeUrl } from '../../dist/util.js';
 import { takeSnapshot } from '../../dist/dom-targets.js';
-import { hash } from '../../dist/util.js';
+import { hash, indexObservations } from '../../dist/util.js';
 import { CHROMIUM_VERSION } from '../../dist/model.js';
 
 const font = { familyName: 'Primary', postScriptName: 'Primary-Regular', isCustomFont: true, glyphCount: 9 };
@@ -63,6 +63,17 @@ test('allowed fallback retains distinct origins without glyph aggregation', () =
   const o = { ...observation(), fonts: [font, { ...font, familyName: 'Secondary', postScriptName: 'Secondary' }] };
   const r = evaluateRule({ rule: { ...config().rules[0], allowed: [{ familyName: 'Primary' }, { familyName: 'Secondary' }] }, matched: 1, elements: [element()], reasons: [] }, [o]);
   assert.equal(r.contractStatus, 'expected'); assert.equal(r.elements[0].actualFonts.length, 2); assert.ok(!('glyphCount' in r.elements[0].actualFonts[0]));
+});
+test('indexed contract evaluation preserves canonical origin order and raw counts', () => {
+  const first = observation(), second = { ...observation(), id: 't2', path: '1.3', fonts: [{ ...font, glyphCount: 5 }] };
+  const unrelated = { ...observation(), id: 'outside', fonts: [{ ...font, familyName: 'Forbidden' }] };
+  const observations = [first, unrelated, second];
+  const e = { ...element(), nodeIds: ['t2', 't1', 't2'] };
+  const result = evaluateRule({ rule: config().rules[0], matched: 1, elements: [e], reasons: [] }, observations);
+  assert.equal(result.contractStatus, 'expected');
+  assert.deepEqual(result.elements[0].actualFonts[0].observationIds, ['t1', 't2']);
+  assert.deepEqual(indexObservations(observations)(e.nodeIds), [first, second]);
+  assert.deepEqual(observations.map(o => o.fonts[0].glyphCount), [9, 9, 5]);
 });
 test('compare equality and actual identity change use independent expectations', () => {
   const a = run(), b = run(); assert.equal(compareRuns(a, b).summary.exitCode, 0);

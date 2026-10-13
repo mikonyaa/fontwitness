@@ -6,6 +6,7 @@
 - Generate the config's Draft 2020-12 input schema deterministically. Omitted nested defaults, including the official example, are accepted. Build/CI parity checks use Ajv2020 and document runtime-only refinements.
 - Distinguish doctor browser absence, version mismatch, sandbox/permission denial, launch failure, CDP failure, cleanup failure, and interruption with safe reason codes and matching actions. Keep the sandbox and pinned measurement pair.
 - Extend real Chromium, installed-package, malformed-capture, and offline report verification, including unchanged-contract font delivery/recovery and escaped selector/key/reason strings.
+- Index canonical observations for comparison and rule evaluation after profiling repeated scans on the size-limited stress fixture. Preserve measured identities, origin ordering, and raw counts.
 
 ## 0.1.1
 

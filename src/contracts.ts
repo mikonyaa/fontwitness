@@ -1,12 +1,15 @@
 import type { CapturedRule, ElementCapture, ElementResult, FontUsage, Observation, RuleResult } from './model.js';
 import type { FontMatcher, Rule } from './config.js';
-import { fontIdentity } from './util.js';
+import { fontIdentity, indexObservations } from './util.js';
 
 export function matchesFont(font: FontUsage, matcher: FontMatcher): boolean {
   return Object.keys(matcher).length > 0 && Object.entries(matcher).every(([k, v]) => font[k as keyof FontUsage] === v);
 }
 export function evaluateElement(rule: Rule, element: ElementCapture, observations: Observation[]): ElementResult {
   const selected = observations.filter(o => element.nodeIds.includes(o.id));
+  return evaluateSelectedElement(rule, element, selected);
+}
+function evaluateSelectedElement(rule: Rule, element: ElementCapture, selected: Observation[]): ElementResult {
   const actual = new Map<string, ElementResult['actualFonts'][number]>();
   for (const observation of selected) for (const font of observation.fonts) {
     const id = fontIdentity(font);
@@ -25,7 +28,8 @@ export function evaluateElement(rule: Rule, element: ElementCapture, observation
   return { elementId: element.id, key: element.key, measurementStatus: element.measurementStatus, coverage: element.coverage, contractStatus: violation ? 'unexpected' : element.coverage === 'partial' || element.measurementStatus === 'unmeasured' ? 'unmeasured' : 'expected', reasons, actualFonts: [...actual.values()].sort((a, b) => fontIdentity(a).localeCompare(fontIdentity(b))), allowed: rule.allowed ?? [], required: rule.required };
 }
 export function evaluateRule(capture: CapturedRule, observations: Observation[]): RuleResult {
-  const elements = capture.elements.map(e => evaluateElement(capture.rule, e, observations));
+  const selected = indexObservations(observations);
+  const elements = capture.elements.map(e => evaluateSelectedElement(capture.rule, e, selected(e.nodeIds)));
   const missing = capture.matched < capture.rule.minMatches;
   const reasons = [...capture.reasons];
   if (missing) reasons.push({ code: 'SELECTOR_MIN_MATCHES', message: `Expected at least ${capture.rule.minMatches} matches; found ${capture.matched}.` });

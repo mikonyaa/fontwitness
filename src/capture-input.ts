@@ -146,6 +146,7 @@ export function parseCapture(value: unknown): RunReport {
       const result = results.get(r.rule.id); if (!result) continue;
       const path = `ruleResults.${ri}`;
       const expected = evaluated?.get(r.rule.id);
+      const expectedElements = new Map(expected?.elements.map(e => [e.elementId, e]));
       check(!!expected && result.contractStatus === expected.contractStatus && result.coverage === expected.coverage, path, 'Rule verdict and coverage must agree with evaluated evidence.');
       const resultElements = new Map(result.elements.map(e => [e.elementId, e]));
       check(result.selector === r.rule.selector && result.matched === r.matched && resultElements.size === result.elements.length && resultElements.size === r.elements.length, path, 'Rule results must agree with recorded selections.');
@@ -153,7 +154,7 @@ export function parseCapture(value: unknown): RunReport {
         const er = resultElements.get(e.id);
         check(!!er, path, 'Element result IDs must reference the captured elements.'); if (!er) continue;
         check(er.key === e.key && er.coverage === e.coverage && er.measurementStatus === e.measurementStatus, path, 'Element result state must agree with captured evidence.');
-        const expectedElement = expected?.elements.find(result => result.elementId === e.id);
+        const expectedElement = expectedElements.get(e.id);
         check(er.contractStatus === expectedElement?.contractStatus && JSON.stringify(er.allowed) === JSON.stringify(r.rule.allowed) && JSON.stringify(er.required) === JSON.stringify(r.rule.required), path, 'Element verdict and matchers must agree with the recorded contract.');
         check(er.contractStatus !== 'expected' || e.coverage === 'complete' && e.measurementStatus === 'measured', path, 'Expected contracts need complete measured evidence.');
         check(new Set(er.actualFonts.map(fontIdentity)).size === er.actualFonts.length, path, 'Actual font identities must be unique.');
