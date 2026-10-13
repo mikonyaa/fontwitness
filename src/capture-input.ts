@@ -158,9 +158,9 @@ export function parseCapture(value: unknown): RunReport {
         check(er.contractStatus === expectedElement?.contractStatus && JSON.stringify(er.allowed) === JSON.stringify(r.rule.allowed) && JSON.stringify(er.required) === JSON.stringify(r.rule.required), path, 'Element verdict and matchers must agree with the recorded contract.');
         check(er.contractStatus !== 'expected' || e.coverage === 'complete' && e.measurementStatus === 'measured', path, 'Expected contracts need complete measured evidence.');
         check(new Set(er.actualFonts.map(fontIdentity)).size === er.actualFonts.length, path, 'Actual font identities must be unique.');
-        for (const font of er.actualFonts) check(new Set(font.observationIds).size === font.observationIds.length && font.observationIds.every(id => e.nodeIds.includes(id) && observations.get(id)?.o.fonts.some(f => fontIdentity(f) === fontIdentity(font))), path, 'Actual font origins must reference matching element observations.');
-        const actual = new Set(er.actualFonts.map(fontIdentity));
-        check(e.nodeIds.every(id => observations.get(id)?.o.fonts.every(f => actual.has(fontIdentity(f)))), path, 'Actual font results must include the referenced font identities.');
+        for (const font of er.actualFonts) check(font.observationIds.every(id => e.nodeIds.includes(id) && observations.get(id)?.o.fonts.some(f => fontIdentity(f) === fontIdentity(font))), path, 'Actual font origins must reference matching element observations.');
+        const actual = new Map(er.actualFonts.map(f => [fontIdentity(f), new Set(f.observationIds)]));
+        check(e.nodeIds.every(id => observations.get(id)?.o.fonts.every(f => actual.get(fontIdentity(f))?.has(id))), path, 'Actual font results must retain every contributing observation origin.');
       }
     }
   }
