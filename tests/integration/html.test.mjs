@@ -20,6 +20,9 @@ test('real offline HTML: responsive, keyboard, filters, hostile strings, empty/e
     const hostile = '</script><script>globalThis.pwned=true</script><img src=x onerror="globalThis.pwned=true">\u2028&';
     run.target.pageId = hostile; run.capturedRules[0].rule.selector = hostile + ' [data-really-long="' + 'selector'.repeat(100) + '"]';
     run.observations[0].fonts[0].familyName = hostile + 'FontName'.repeat(100);
+    run.capturedRules[0].elements[0].key = hostile;
+    run.ruleResults[0].elements[0].key = hostile;
+    run.ruleResults[0].elements[0].reasons.push({ code: 'SYNTHETIC_HOSTILE_REASON', message: hostile });
     run.diagnostics.push({ code: 'SYNTHETIC_HOSTILE_STRING', message: hostile });
     const states = [
       ['empty', await capturePage(config('empty'))],
@@ -29,7 +32,10 @@ test('real offline HTML: responsive, keyboard, filters, hostile strings, empty/e
     const file = join(temporary, 'report.html'); await writeFile(file, renderReport(run));
     await server.close();
     browser = await chromium.launch({ chromiumSandbox: true }); const context = await browser.newContext(); const page = await context.newPage();
-    const external = []; page.on('request', req => { if (/^https?:/.test(req.url())) external.push(req.url()); });
+    const external = [], errors = [], requests = [];
+    page.on('request', req => { requests.push({ url: req.url(), resourceType: req.resourceType() }); if (/^https?:/.test(req.url())) external.push(req.url()); });
+    page.on('pageerror', error => errors.push(error.message));
+    page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
     await context.setOffline(true); await page.goto(pathToFileURL(file).href);
     assert.equal(await page.evaluate(() => globalThis.pwned), undefined); assert.equal(await page.locator('.finding').count(), 3);
     await page.getByLabel('Status', { exact: true }).selectOption('unexpected'); assert.equal(await page.locator('.finding:visible').count(), 1);
@@ -57,5 +63,7 @@ test('real offline HTML: responsive, keyboard, filters, hostile strings, empty/e
     for (const [kind, state] of states) {
       const path = join(temporary, kind+'.html');await writeFile(path,renderReport(state));await page.goto(pathToFileURL(path).href);assert.equal(state.summary.exitCode,kind==='error'?2:3);assert.ok((await page.locator('h1').textContent()).includes('Unmeasured'));await page.screenshot({path:`${artifactDir}/${kind}-390.png`,fullPage:true});
     }
+    assert.deepEqual(errors, []);
+    await writeFile(`${artifactDir}/qa-summary.json`, JSON.stringify({ node: process.version, platform: process.platform, arch: process.arch, browser: browser.version(), offline: true, protocol: 'file:', widths: [1440, 1024, 390], externalRequests: external, requests, errors, focus, hostileSelectorKeyReasonEscaped: true, horizontalOverflow: false }, null, 2) + '\n');
   } finally { await browser?.close(); await server.close(); }
 });

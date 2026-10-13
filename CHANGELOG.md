@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Runtime validate saved captures in the CLI and public comparison API, including canonical references, counts, complete coverage, fingerprints, and recorded audit verdicts. Damaged evidence now returns `INVALID_CAPTURE`/exit 2 instead of false complete equality; valid partial/incomparable evidence retains exit 3.
+- Generate the config's Draft 2020-12 input schema deterministically. Omitted nested defaults, including the official example, are accepted. Build/CI parity checks use Ajv2020 and document runtime-only refinements.
+- Distinguish doctor browser absence, version mismatch, sandbox/permission denial, launch failure, CDP failure, cleanup failure, and interruption with safe reason codes and matching actions. Keep the sandbox and pinned measurement pair.
+- Extend real Chromium, installed-package, malformed-capture, and offline report verification, including unchanged-contract font delivery/recovery and escaped selector/key/reason strings.
+
 ## 0.1.1
 
 - Recognize SVG by namespace, including prefixed elements. Mixed HTML/SVG selections retain actual HTML font evidence and remain partial (exit 3) rather than reporting a complete contract.

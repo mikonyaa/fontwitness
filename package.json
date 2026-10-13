@@ -19,6 +19,8 @@
   "files": [
     "dist",
     "schemas",
+    "docs/config.md",
+    "docs/measurement.md",
     "examples/font-loading-site",
     "fixtures/fonts",
     "LICENSE",
@@ -33,7 +35,12 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
-    "build": "tsc",
+    "build": "tsc && npm run schema:check",
+    "schema:generate": "node scripts/generate-schema.mjs",
+    "schema:check": "node scripts/generate-schema.mjs --check",
+    "test:schema": "npm run schema:check && node --test tests/schema/*.test.mjs",
+    "test:malformed": "node scripts/malformed-capture-test.mjs",
+    "profile:compare": "node scripts/profile-compare.mjs",
     "test:unit": "node --test tests/unit/*.test.mjs",
     "test:integration": "node --test --test-timeout=60000 --test-concurrency=1 tests/integration/*.test.mjs",
     "test:package": "node scripts/package-test.mjs",
@@ -47,8 +54,10 @@
   },
   "devDependencies": {
     "@types/node": "24.10.1",
-    "typescript": "5.9.3",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
     "eslint": "10.12.0",
+    "typescript": "5.9.3",
     "typescript-eslint": "8.71.1"
   }
 }

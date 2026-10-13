@@ -1,10 +1,15 @@
 import type { RunReport, CompareReport } from './model.js';
 import { TOOL_VERSION } from './model.js';
+import { CAPTURE_POLICY, CHROMIUM_VERSION, PLAYWRIGHT_VERSION } from './model.js';
 import { fontIdentity } from './util.js';
+import { parseCapture } from './capture-input.js';
 
-export function compareRuns(before: RunReport, after: RunReport, crossEnv = false): CompareReport {
+export function compareRuns(beforeInput: unknown, afterInput: unknown, crossEnv = false): CompareReport {
+  const before = parseCapture(beforeInput), after = parseCapture(afterInput);
   const report: CompareReport = { schemaVersion: 1, kind: 'comparison', toolVersion: TOOL_VERSION, recordedAt: new Date().toISOString(), mode: crossEnv ? 'cross-env' : 'strict', contractVerdict: null, before: before.captureId, after: after.captureId, environmentDifferences: [], diagnostics: [], changes: [], summary: { exitCode: 3, partial: true, changed: 0 } };
   const issue = (code: string, message: string) => report.diagnostics.push({ code, message });
+  if ([before, after].some(run => run.settings.capturePolicy !== CAPTURE_POLICY)) issue('UNSUPPORTED_CAPTURE_POLICY', 'This comparator supports light-dom-textnodes-v2; recapture using the supported policy.');
+  if ([before, after].some(run => run.environment.browser !== CHROMIUM_VERSION || run.environment.playwright !== PLAYWRIGHT_VERSION)) issue('UNSUPPORTED_BROWSER_PAIR', 'Captures need the supported pinned Chromium/Playwright measurement pair.');
   if (before.schemaVersion !== after.schemaVersion || before.settings.capturePolicy !== after.settings.capturePolicy || JSON.stringify(before.settings.limits) !== JSON.stringify(after.settings.limits)) issue('CAPTURE_POLICY_MISMATCH', 'Capture schemas, limits, or policies differ.');
   for (const field of ['browser', 'playwright', 'node', 'os', 'osVersion', 'arch'] as const) if (before.environment[field] !== after.environment[field]) report.environmentDifferences.push(`environment.${field}: ${before.environment[field]} → ${after.environment[field]}`);
   for (const field of ['headless', 'viewport', 'deviceScaleFactor', 'locale'] as const) if (JSON.stringify(before.settings.browser[field]) !== JSON.stringify(after.settings.browser[field])) report.environmentDifferences.push(`browser.${field}: ${JSON.stringify(before.settings.browser[field])} → ${JSON.stringify(after.settings.browser[field])}`);

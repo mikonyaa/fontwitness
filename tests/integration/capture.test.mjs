@@ -4,12 +4,15 @@ import { mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { parseConfig } from '../../dist/config.js';
-import { capturePage } from '../../dist/capture.js';
+import { capturePage as capture } from '../../dist/capture.js';
+import { parseCapture } from '../../dist/capture-input.js';
 import { compareRuns } from '../../dist/compare.js';
 import { chromium, closeOwnedServer } from '../../dist/browser.js';
 import { startDemoServer } from '../../examples/font-loading-site/server.mjs';
 
 let server, temporary;
+// Every real positive, partial, fatal, overlap, and interrupted fixture must survive the public parser.
+const capturePage = async (...args) => parseCapture(await capture(...args));
 before(async () => { server = await startDemoServer(); temporary = await mkdtemp(join(tmpdir(), 'fontwitness-integration-')); });
 after(async () => { await server.close(); });
 const baseRule = { id: 'copy', selector: '[data-font-check]', keyAttribute: 'data-font-check', allowed: [{ familyName: 'Alegreya Sans', isCustomFont: true }], required: [{ familyName: 'Alegreya Sans' }] };
@@ -44,6 +47,13 @@ test('four levels, sibling TextNodes, all matches, overlapping selectors are can
   const run = await capturePage(config('nested', { rules: [baseRule, { ...baseRule, id: 'deep', selector: '[data-nested]', keyAttribute: 'data-nested' }] }));
   assert.equal(run.summary.exitCode, 0); assert.equal(run.observations.length, 4); assert.equal(run.coverage.measured, 4); assert.equal(run.capturedRules[0].matched, 2);
   const deep = run.capturedRules[1].elements[0]; assert.equal(deep.nodeIds.length, 1); assert.ok(run.capturedRules[0].elements[0].nodeIds.includes(deep.nodeIds[0])); assert.equal(run.capturedRules[0].elements[0].nodeIds.length, 3);
+});
+test('the same canonical root can be shared across rules with different scopes', async () => {
+  const run = await capturePage(config('nested', { rules: [baseRule, { ...baseRule, id: 'direct', scope: 'direct' }] }));
+  const subtree = run.capturedRules[0].elements[0], direct = run.capturedRules[1].elements[0];
+  assert.equal(subtree.id, direct.id); assert.equal(subtree.path, direct.path);
+  assert.ok(subtree.nodeIds.length > direct.nodeIds.length);
+  assert.equal(compareRuns(run, run).summary.exitCode, 0);
 });
 test('last of several matches is audited and fails', async () => {
   const run = await capturePage(config('last')); assert.equal(run.summary.exitCode, 1); assert.equal(run.ruleResults[0].elements.length, 3); assert.equal(run.ruleResults[0].elements.at(-1).contractStatus, 'unexpected');

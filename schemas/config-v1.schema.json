@@ -84,12 +84,6 @@
           "maxLength": 100
         }
       },
-      "required": [
-        "headless",
-        "viewport",
-        "deviceScaleFactor",
-        "locale"
-      ],
       "additionalProperties": false
     },
     "readiness": {
@@ -133,13 +127,6 @@
           "maximum": 300000
         }
       },
-      "required": [
-        "navigationTimeoutMs",
-        "fontTimeoutMs",
-        "stableWindowMs",
-        "maxAttempts",
-        "totalTimeoutMs"
-      ],
       "additionalProperties": false
     },
     "limits": {
@@ -169,11 +156,6 @@
           "maximum": 65536
         }
       },
-      "required": [
-        "maxTextNodes",
-        "maxMatchesPerRule",
-        "maxTextLength"
-      ],
       "additionalProperties": false
     },
     "artifacts": {
@@ -196,10 +178,6 @@
           "type": "boolean"
         }
       },
-      "required": [
-        "screenshots",
-        "includeText"
-      ],
       "additionalProperties": false
     },
     "preparation": {
@@ -218,8 +196,7 @@
         }
       },
       "required": [
-        "hook",
-        "timeoutMs"
+        "hook"
       ],
       "additionalProperties": false
     },
@@ -285,8 +262,7 @@
                   "type": "boolean"
                 }
               },
-              "additionalProperties": false,
-              "minProperties": 1
+              "additionalProperties": false
             }
           },
           "required": {
@@ -310,18 +286,13 @@
                   "type": "boolean"
                 }
               },
-              "additionalProperties": false,
-              "minProperties": 1
+              "additionalProperties": false
             }
           }
         },
         "required": [
           "id",
-          "selector",
-          "match",
-          "scope",
-          "minMatches",
-          "required"
+          "selector"
         ],
         "additionalProperties": false
       }
@@ -330,10 +301,6 @@
   "required": [
     "schemaVersion",
     "page",
-    "browser",
-    "readiness",
-    "limits",
-    "artifacts",
     "rules"
   ],
   "additionalProperties": false

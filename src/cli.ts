@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import { ZodError } from 'zod';
-import { readFile, stat, writeFile } from 'node:fs/promises';
+import { stat, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { spawn } from 'node:child_process';
-import { chromium, installedPlaywrightVersion, installBrowser } from './browser.js';
+import { installBrowser } from './browser.js';
+import { runDoctor } from './doctor.js';
 import { parseConfig, loadConfig } from './config.js';
 import { capturePage } from './capture.js';
 import { compareRuns } from './compare.js';
-import { TOOL_VERSION, PLAYWRIGHT_VERSION, CHROMIUM_VERSION, type RunReport } from './model.js';
+import { TOOL_VERSION, PLAYWRIGHT_VERSION } from './model.js';
+import { loadCapture, CaptureInputError } from './capture-input.js';
 import { newOutputDirectory, writeReport } from './artifacts.js';
 import { runDemo, initExample } from './demo.js';
 
@@ -26,30 +28,15 @@ async function capture(mode: 'inspect' | 'audit', config: ReturnType<typeof pars
   emit(run, `FontWitness ${mode}: ${run.summary.contractVerdict ?? run.coverage.status} · coverage ${run.coverage.status} · exit ${run.summary.exitCode}\nReport: ${join(out, 'report.html')}`, run.summary.exitCode);
 }
 program.command('doctor').description('Check Node, pinned Chromium, and real TextNode CDP measurement').option('--json').action(async () => {
-  let browser: Awaited<ReturnType<typeof chromium.launch>> | undefined;
-  try {
-    browser = await chromium.launch({ chromiumSandbox: true, handleSIGINT: false, timeout: 30000 });
-    if (controller.signal.aborted) throw new Error('INTERRUPTED');
-    const stop = () => { void browser?.close().catch(() => {}); }; controller.signal.addEventListener('abort', stop, { once: true });
-    const context = await browser.newContext(); const page = await context.newPage();
-    await page.setContent('<p>FontWitness doctor text</p>');
-    const cdp = await context.newCDPSession(page); await cdp.send('DOM.enable'); await cdp.send('CSS.enable'); await cdp.send('DOM.getDocument', { depth: 0 });
-    const { result } = await cdp.send('Runtime.evaluate', { expression: 'document.querySelector("p").firstChild' }); const { nodeId } = await cdp.send('DOM.requestNode', { objectId: result.objectId! });
-    const { fonts } = await cdp.send('CSS.getPlatformFontsForNode', { nodeId });
-    if (!fonts.length) throw new Error('EMPTY_FONT_OBSERVATION');
-    const ok = process.versions.node.split('.')[0] === '24' && browser.version() === CHROMIUM_VERSION && installedPlaywrightVersion === PLAYWRIGHT_VERSION;
-    emit({ ok, node: process.version, playwright: installedPlaywrightVersion, chromium: browser.version(), mechanism: 'CSS.getPlatformFontsForNode', fonts }, `Doctor: ${ok ? 'ready' : 'Node 24 and the pinned browser pair required'} · Chromium ${browser.version()} · Playwright ${installedPlaywrightVersion}`, ok ? 0 : 2);
-    controller.signal.removeEventListener('abort', stop);
-  } catch { emit({ ok: false, code: controller.signal.aborted ? 'INTERRUPTED' : 'BROWSER_OR_CDP_UNAVAILABLE', node: process.version, playwright: installedPlaywrightVersion }, controller.signal.aborted ? 'Doctor interrupted.' : 'Doctor: compatible browser/CDP unavailable. Run fontwitness install-browser.', controller.signal.aborted ? 130 : 2); }
-  finally { await browser?.close().catch(() => {}); }
+  const report = await runDoctor(controller.signal);
+  emit(report, `Doctor: ${report.code} · ${report.action}`, report.exitCode);
 });
 program.command('install-browser').description(`Install Chromium using the bundled Playwright ${PLAYWRIGHT_VERSION} installer`).option('--json').action(async () => { await installBrowser(jsonRequested); emit({ installed: true, playwright: PLAYWRIGHT_VERSION }, `Chromium installed for Playwright ${PLAYWRIGHT_VERSION}.`); });
 program.command('init').description('Create a standalone synthetic example without overwriting files').requiredOption('--dir <directory>').option('--json').action(async options => { const dir = resolve(options.dir); await initExample(dir); emit({ directory: dir }, `Example created: ${dir}\nRun node ${join(dir, 'server.mjs')}`); });
 reportOptions(program.command('inspect').description('Capture actual fonts without a contract verdict').argument('<URL>').requiredOption('--selector <CSS>', 'CSS selector (repeat for multiple)', (value: string, previous: string[]) => [...previous, value], []).action(async (url, options) => { const config = parseConfig({ schemaVersion: 1, page: { id: 'inspect', url }, rules: options.selector.map((selector: string, i: number) => ({ id: `selection-${i + 1}`, selector })) }, 'inspect'); await capture('inspect', config, options.out); }));
 reportOptions(program.command('audit').description('Capture and evaluate every matched element').requiredOption('--config <file>').action(async options => { const config = await loadConfig(options.config); await capture('audit', config, options.out, dirname(resolve(options.config))); }));
 reportOptions(program.command('compare').description('Compare stable keys in two saved captures').argument('<before>').argument('<after>').option('--cross-env', 'Descriptive comparison allowing environment differences').action(async (before, after, options) => {
-  const load = async (path: string): Promise<RunReport> => { if ((await stat(path)).size > 25 * 1024 * 1024) throw new Error('CAPTURE_SIZE_LIMIT'); const value = JSON.parse(await readFile(path, 'utf8')); if (value.schemaVersion !== 1 || value.kind !== 'capture' || !Array.isArray(value.observations) || !Array.isArray(value.capturedRules) || !value.settings || !value.environment || !value.coverage) throw new Error('INVALID_CAPTURE'); return value; };
-  const a = await load(before), b = await load(after); const comparison = compareRuns(a, b, options.crossEnv); const out = await newOutputDirectory(options.out); await writeReport(out, comparison); emit(comparison, `Comparison: ${comparison.summary.changed} font changes · ${comparison.summary.partial ? 'partial' : 'complete'} · exit ${comparison.summary.exitCode}\nReport: ${join(out, 'report.html')}`, comparison.summary.exitCode);
+  const a = await loadCapture(before), b = await loadCapture(after); const comparison = compareRuns(a, b, options.crossEnv); const out = await newOutputDirectory(options.out); await writeReport(out, comparison); emit(comparison, `Comparison: ${comparison.summary.changed} font changes · ${comparison.summary.partial ? 'partial' : 'complete'} · exit ${comparison.summary.exitCode}\nReport: ${join(out, 'report.html')}`, comparison.summary.exitCode);
 }));
 reportOptions(program.command('demo').description('Run real correct, broken, fixed, and allowed-fallback browser checks').action(async options => { const out = await newOutputDirectory(options.out); process.stderr.write('Running synthetic Chromium demo…\n'); const result = await runDemo(out, controller.signal); emit(result, `Demo self-test: ${result.selfTest ? 'passed' : 'failed'}\nCorrect ${result.runs.correct?.exitCode} · Broken ${result.runs.broken?.exitCode} · Fixed ${result.runs.fixed?.exitCode} · Allowed fallback ${result.runs.fallback?.exitCode}\nReports: ${out}`, result.exitCode); }));
 program.command('open').description('Explicitly open an existing local report with the OS viewer').argument('<report.html>').action(async path => { await stat(path); const command = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'explorer.exe' : 'xdg-open'; const child = spawn(command, [resolve(path)], { shell: false, stdio: 'ignore' }); await new Promise<void>((resolve, reject) => { child.once('error', reject); child.once('exit', code => code === 0 ? resolve() : reject(new Error('OPEN_FAILED'))); }); });
@@ -58,9 +45,9 @@ catch (error) {
   const code = error && typeof error === 'object' && 'code' in error ? String(error.code) : '';
   if (!['commander.helpDisplayed', 'commander.version'].includes(code)) {
     jsonRequested ||= process.argv.includes('--json');
-    const issues = error instanceof ZodError ? error.issues.map(i => ({ path: i.path.join('.'), code: i.code, message: i.message })) : undefined;
-    const message = issues ? 'Configuration validation failed.' : code === 'EEXIST' ? 'Output directory already exists. Choose a new directory; existing files were preserved.' : error instanceof Error && error.message.startsWith('Every audit rule') ? error.message : 'Invalid input or execution failed. Check paths, permissions, and --help.';
-    const reasonCode = issues ? 'INVALID_CONFIG' : code === 'EEXIST' ? 'OUTPUT_EXISTS' : code.startsWith('commander.') ? 'CLI_ARGUMENT_ERROR' : 'CONFIG_OR_EXECUTION_ERROR';
+    const issues = error instanceof CaptureInputError ? error.issues : error instanceof ZodError ? error.issues.map(i => ({ path: i.path.join('.'), code: i.code, message: i.message })) : undefined;
+    const message = error instanceof CaptureInputError ? error.message : issues ? 'Configuration validation failed.' : code === 'EEXIST' ? 'Output directory already exists. Choose a new directory; existing files were preserved.' : error instanceof Error && error.message.startsWith('Every audit rule') ? error.message : 'Invalid input or execution failed. Check paths, permissions, and --help.';
+    const reasonCode = error instanceof CaptureInputError ? error.code : issues ? 'INVALID_CONFIG' : code === 'EEXIST' ? 'OUTPUT_EXISTS' : code.startsWith('commander.') ? 'CLI_ARGUMENT_ERROR' : 'CONFIG_OR_EXECUTION_ERROR';
     emit({ error: { code: reasonCode, message, ...(issues ? { issues } : {}) }, exitCode: controller.signal.aborted ? 130 : 2 }, message + (issues ? '\n' + issues.map(i => `${i.path || 'config'}: ${i.message}`).join('\n') : ''), controller.signal.aborted ? 130 : 2);
   }
 } finally { process.removeListener('SIGINT', interrupt); }

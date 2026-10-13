@@ -31,6 +31,8 @@ jobs:
       - run: npm run lint
       - run: npm run test:unit
       - run: npm run build
+      - run: npm run test:schema
+      - run: npm run test:malformed
       - name: Install system libraries with the pinned Playwright installer
         if: runner.os == 'Linux'
         run: node node_modules/playwright/cli.js install-deps chromium

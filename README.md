@@ -27,6 +27,8 @@ Open `fontwitness-demo/broken/report.html` directly from disk. The HTML embeds i
 
 On Linux, install the required OS libraries first using the distribution's normal package setup. In the source checkout, the exact bundled installer is `node node_modules/playwright/cli.js install-deps chromium`; this can require administrator privileges. Browser binaries are not inside the tarball. They use a dedicated FontWitness cache; `PLAYWRIGHT_BROWSERS_PATH` can select another explicit cache. The installer disables cross-project browser garbage collection.
 
+`doctor --json` reports a safe reason code and action: `BROWSER_MISSING`, `VERSION_MISMATCH`, `BROWSER_LAUNCH_DENIED`, `BROWSER_LAUNCH_FAILED`, `CDP_MEASUREMENT_FAILED`, `BROWSER_CLEANUP_FAILED`, or `INTERRUPTED`. `READY` requires a real TextNode CDP font observation. An installed browser that cannot launch needs OS permissions/libraries or a sandbox-capable environment. The Chromium sandbox stays enabled; raw launch errors and environment variables are not included in doctor JSON.
+
 The release publishes SHA256SUMS and a manifest identifying its source commit and exact CI-produced tarball. To verify before installing:
 
 ```sh
@@ -97,7 +99,7 @@ Change the example URL from `/correct` to `/broken` to reproduce a real 404. Res
 }
 ```
 
-The names above are verified identities of the bundled example font. Build your own contracts from inspect observations. `allowed` is exhaustive, and each `required` matcher must be observed inside each separate matched element. Every explicitly supplied `familyName`, `postScriptName`, or `isCustomFont` field must match exactly, including case. There are no implicit substrings, wildcards, aliases, or guesses. The [JSON schema](schemas/config-v1.schema.json) documents the shape; the CLI additionally enforces semantic constraints and rejects unknown keys.
+The names above are verified identities of the bundled example font. Build your own contracts from inspect observations. `allowed` is exhaustive, and each `required` matcher must be observed inside each separate matched element. Every explicitly supplied `familyName`, `postScriptName`, or `isCustomFont` field must match exactly, including case. There are no implicit substrings, wildcards, aliases, or guesses. The [Draft 2020-12 JSON input schema](schemas/config-v1.schema.json) accepts omitted defaulted fields, including fields inside explicitly supplied nested objects. Schema and runtime reject unknown keys. Runtime additionally enforces HTTP(S) URLs, nonempty font matchers, unique rule IDs, local preparation hooks, and audit-specific `allowed` requirements; see [config validation](docs/config.md).
 
 For the synthetic multilingual fixture, allow `Alegreya Sans` **and** `Noto Sans CJK JP`, requiring both. An allowed Latin/CJK fallback is expected typography. Two fonts are not automatically a problem.
 
@@ -138,6 +140,10 @@ Fatal execution errors take priority 2. Otherwise a proven violation takes prior
 
 Strict compare returns 0 for comparable runs without a significant font identity change, 1 for a font identity change, and 3 for insufficient comparability. It checks schema/policy/limits, browser and Playwright versions, OS/version/architecture, Node, headless, viewport/DPR, locale, text/structure, and stable unique page/rule/element keys. Configure unique `keyAttribute` values; a unique DOM id is the fallback key. Backend node IDs and array indices are not cross-run identity.
 
+Saved captures are runtime validated before comparison. Malformed JSON, missing observations, duplicate IDs within their canonical scope, dangling references, contradictory counts/fingerprints/readiness/coverage, or inconsistent recorded audit verdicts return input error 2 (`INVALID_CAPTURE`). Defaults never fill gaps in saved evidence. Valid partial evidence and unsupported capture policies/browser pairs return 3 in both modes. The comparator supports `light-dom-textnodes-v2` with the pinned browser pair; identical unsupported policies do not establish comparability. Validation checks internal consistency, not the authenticity of a JSON file or its producer.
+
+The public ESM API exports `parseCapture(value)` and `loadCapture(path)`. `compareRuns(before, after, crossEnv?)` validates both inputs at runtime and throws `CaptureInputError` with safe `code`/`issues` for malformed evidence. Complete no-change comparisons retain actual measured identities; they cannot succeed on missing observations. The CLI limits each saved input to 25 MiB.
+
 `--cross-env` is descriptive. It allows recorded environment differences, shows actual font changes, and returns 0 for a complete comparison even with changes. Partial data, changed input/structure, absent or duplicate keys, and incompatible policies still return 3. Both modes keep `contractVerdict: null`. A font change alone is not a proven product regression. Baselines are never updated automatically.
 
 ## Verification and limits
@@ -162,6 +168,9 @@ npm run typecheck
 npm run lint
 npm run test:unit
 npm run build
+npm run schema:generate # Only when intentionally updating config.ts; review the schema diff
+npm run test:schema
+npm run test:malformed
 node ./dist/cli.js install-browser
 npm run test:integration
 npm run test:package
@@ -170,5 +179,7 @@ npm pack --json
 ```
 
 `test:package` creates the actual tarball after prepack, installs it outside the repository with only production dependencies, and launches its installed binary. CI preserves those exact bytes as an artifact. Browser profiles are isolated and handles close on success, timeouts, or interrupts. CI is read-only, uses upstream SHA-pinned Actions, and never exposes publish secrets or a personal self-hosted machine to fork PRs.
+
+`build` checks that the shipped schema matches deterministic generation from `src/config.ts` using Zod input semantics. `test:schema` validates it with Ajv2020 and checks runtime parity, defaults, ranges, unknown keys, and documented runtime-only refinements. `test:malformed` exercises the real CLI's saved-capture input and comparison outcomes. Package tests repeat those cases against the installed binary and capture a consumer-owned static page with successful, broken, and restored font delivery under an unchanged contract.
 
 The project is a small strict TypeScript/ESM package. Capture, pure contract evaluation, comparison, and rendering are separate modules. [Contributions](CONTRIBUTING.md) are welcome. Code: [MIT](LICENSE). Bundled fonts: [SIL OFL 1.1 with source/hash notices](THIRD_PARTY_NOTICES.md).
