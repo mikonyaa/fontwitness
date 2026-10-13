@@ -7,8 +7,6 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { startDemoServer } from '../../examples/font-loading-site/server.mjs';
 import { parseCapture } from '../../dist/capture-input.js';
-import { watch } from 'node:fs';
-import { hash } from '../../dist/util.js';
 
 test('source CLI: real font delivery, equal/change/partial/input errors, missing-browser doctor, and SIGINT JSON', async () => {
   const server = await startDemoServer(); const cwd = await mkdtemp(join(tmpdir(), 'fontwitness-source-cli-'));
@@ -39,21 +37,18 @@ test('source CLI: real font delivery, equal/change/partial/input errors, missing
     assert.equal((await run(['audit', '--config', 'absent.json', '--out', 'absent'], 2)).exitCode, 2);
     const missing = await run(['doctor'], 2, { ...process.env, PLAYWRIGHT_BROWSERS_PATH: join(cwd, 'missing-browser-cache') });
     assert.equal(missing.code, 'BROWSER_MISSING'); assert.match(missing.action, /install-browser/);
-    // Synthetic stress data exercises SIGINT during report writing, separately from real capture proof.
-    const stress = JSON.parse(await readFile(join(cwd, 'correct/capture.json'), 'utf8'));
-    const template = stress.observations[0]; stress.mode = 'inspect'; delete stress.ruleResults;
-    stress.captureId = stress.target.pageId = 'synthetic-interrupt-stress';
-    stress.observations = Array.from({ length: 2000 }, (_, i) => ({ ...template, id: `t${i}`, path: `1.1.${i}.0`, provenance: { method: 'CSS.getPlatformFontsForNode', nodeType: 3 } }));
-    stress.capturedRules = [{ ...stress.capturedRules[0], matched: 2000, elements: stress.observations.map((o, i) => ({ ...stress.capturedRules[0].elements[0], id: `e${i}`, key: `key-${i}`, path: `1.1.${i}`, nodeIds: [o.id], textFingerprint: hash(JSON.stringify([o.textFingerprint])), structureFingerprint: hash(JSON.stringify(['.0'])), counts: { textNodes: 1, measured: 1, excluded: 0, unsupported: 0 } })) }];
-    stress.settings.limits.maxMatchesPerRule = 2000;
-    stress.coverage = { ...stress.coverage, matched: 2000, measured: 2000, unmeasured: 0, excluded: 0, unsupported: 0 };
-    stress.summary = { exitCode: 0, partial: false }; parseCapture(stress);
-    await writeFile(join(cwd, 'stress.json'), JSON.stringify(stress));
-    const compareChild = spawn(process.execPath, [cli, 'compare', 'stress.json', 'stress.json', '--out', 'compare-interrupted', '--json'], { cwd, env: process.env, stdio: ['ignore', 'pipe', 'pipe'] });
+    // Delay only this child's report I/O to signal while the CLI is active, before completion.
+    // File contents and the CLI's signal handling remain real; no output/verdict is synthesized.
+    const hook = join(cwd, 'delay-report.mjs');
+    await writeFile(hook, `import {createRequire,syncBuiltinESMExports} from 'node:module';
+const fs=createRequire(import.meta.url)('node:fs/promises'),write=fs.writeFile;
+fs.writeFile=async(...args)=>{if(String(args[0]).endsWith('report.html')){process.stderr.write('REPORT_WRITE\\n');await new Promise(r=>setTimeout(r,500));}return write(...args);};
+syncBuiltinESMExports();`);
+    const compareChild = spawn(process.execPath, ['--import', hook, cli, 'compare', 'correct/capture.json', 'fixed/capture.json', '--out', 'compare-interrupted', '--json'], { cwd, env: process.env, stdio: ['ignore', 'pipe', 'pipe'] });
     let compared = '', signaled = false;
-    const watcher = watch(cwd, (_event, name) => { if (name === 'compare-interrupted' && !signaled) { signaled = true; compareChild.kill('SIGINT'); } });
-    compareChild.stdout.on('data', bytes => compared += bytes); compareChild.stderr.resume();
-    const compareCode = await new Promise((resolve, reject) => { compareChild.once('close', resolve); compareChild.once('error', reject); }).finally(() => watcher.close());
+    compareChild.stderr.on('data', bytes => { if (bytes.toString().includes('REPORT_WRITE') && !signaled) { signaled = true; compareChild.kill('SIGINT'); } });
+    compareChild.stdout.on('data', bytes => compared += bytes);
+    const compareCode = await new Promise((resolve, reject) => { compareChild.once('close', resolve); compareChild.once('error', reject); });
     assert.equal(signaled, true); assert.equal(compareCode, 130); assert.equal(JSON.parse(compared).error.code, 'INTERRUPTED');
     config.page.url = `${server.origin}/deadline`; await writeFile(configFile, JSON.stringify(config));
     const child = spawn(process.execPath, [cli, 'audit', '--config', configFile, '--out', 'interrupted', '--json'], { cwd, env: process.env, stdio: ['ignore', 'pipe', 'pipe'] });
